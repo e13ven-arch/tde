@@ -60,6 +60,7 @@ class TrainConfig:
     marker: str = "mask"              # mask | new | eos (decoders)
     pool: str = "marker+span"         # marker | span | marker+span
     max_state_tokens: int = 448
+    gradient_checkpointing: bool = False  # trade compute for memory (needed for 1024-token states on 8 GB)
     eval_every: int = 500
     log_every: int = 25
     seed: int = 0
@@ -213,6 +214,9 @@ def train(cfg: TrainConfig) -> dict:
     dtok, model = build_model(cfg.backbone, cfg.readout, tiny=cfg.tiny, use_confidence_head=cfg.use_confidence_head,
                               branch_layers=cfg.branch_layers, max_state_tokens=cfg.max_state_tokens,
                               branch_through_backbone=cfg.branch_through_backbone, marker=cfg.marker, pool=cfg.pool)
+    if cfg.gradient_checkpointing and hasattr(model.backbone, "gradient_checkpointing_enable"):
+        model.backbone.gradient_checkpointing_enable()
+        print("[train] gradient checkpointing enabled")
     if cfg.init_from:
         state = torch.load(Path(cfg.init_from) / "best.pt", map_location="cpu")
         missing, unexpected = model.load_state_dict(state, strict=False)
