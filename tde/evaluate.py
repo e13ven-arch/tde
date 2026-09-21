@@ -46,6 +46,9 @@ def _slices(examples: list[DecisionExample]) -> dict[str, list[int]]:
         ls = e.meta.get("label_source")
         if ls:
             s[f"labels={ls}"].append(i)
+        for key in ("task_held_out", "hotpot_type", "hotpot_level", "workflow", "scope_control"):
+            if key in e.meta:
+                s[f"{key}={e.meta[key]}"].append(i)
     return s
 
 
