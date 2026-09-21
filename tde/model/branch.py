@@ -14,16 +14,17 @@ from __future__ import annotations
 import torch
 from torch import nn
 
-from tde.model.heads import ConfidenceHead, LevelIndexEmbedding, PointerScorer, gather_positions
+from tde.model.heads import ConfidenceHead, LevelIndexEmbedding, PointerScorer, candidate_states, gather_positions
 
 
 class BranchDecisionModel(nn.Module):
     mode = "branch"
 
     def __init__(self, backbone: nn.Module, hidden: int, n_layers: int = 3, n_heads: int = 8, max_branch_len: int = 1024,
-                 use_confidence_head: bool = False, dropout: float = 0.1, branch_through_backbone: bool = True):
+                 use_confidence_head: bool = False, dropout: float = 0.1, branch_through_backbone: bool = True, pool: str = "marker+span"):
         super().__init__()
         self.backbone = backbone
+        self.pool = pool
         self.branch_through_backbone = branch_through_backbone
         self.embed = backbone.get_input_embeddings()  # shared token embeddings (v1 path)
         self.pos = nn.Embedding(max_branch_len, hidden)
@@ -53,7 +54,7 @@ class BranchDecisionModel(nn.Module):
         x = self.in_norm(x)
         tgt_pad = batch["attention_mask"] == 0
         h = self.branch(tgt=x, memory=self.mem_norm(mem), tgt_key_padding_mask=tgt_pad, memory_key_padding_mask=mem_pad)
-        h_opts = self.level(gather_positions(h, batch["opt_positions"]), batch["level_index"])
+        h_opts = self.level(candidate_states(h, batch, self.pool), batch["level_index"])
         h_dec = h[torch.arange(h.size(0), device=h.device), batch["decide_positions"]]
         logits = self.scorer(h_dec, h_opts, batch["cand_mask"])
         res = {"logits": logits}

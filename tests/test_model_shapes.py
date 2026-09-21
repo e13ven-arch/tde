@@ -59,4 +59,5 @@ def test_decision_tokenizer_marks_candidates():
     enc = dtok.encode(e, "joint")
     assert all(enc.input_ids[p] == dtok.opt_id for p in enc.opt_positions)
     assert enc.input_ids[enc.decide_position] == dtok.decide_id
+    assert enc.spans and all(enc.input_ids[a] != dtok.opt_id for a, _ in enc.spans)
     assert enc.level_index == [-1, -1, -1]

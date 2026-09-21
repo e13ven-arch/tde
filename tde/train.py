@@ -53,6 +53,8 @@ class TrainConfig:
     use_confidence_head: bool = False
     branch_layers: int = 3
     branch_through_backbone: bool = True
+    marker: str = "mask"              # mask | new
+    pool: str = "marker+span"         # marker | span | marker+span
     max_state_tokens: int = 448
     eval_every: int = 500
     log_every: int = 25
@@ -152,7 +154,7 @@ def train(cfg: TrainConfig) -> dict:
     cal_ex = load_jsonl(Path(cfg.data_dir) / "calibration.jsonl", cfg.eval_limit)
     dtok, model = build_model(cfg.backbone, cfg.readout, tiny=cfg.tiny, use_confidence_head=cfg.use_confidence_head,
                               branch_layers=cfg.branch_layers, max_state_tokens=cfg.max_state_tokens,
-                              branch_through_backbone=cfg.branch_through_backbone)
+                              branch_through_backbone=cfg.branch_through_backbone, marker=cfg.marker, pool=cfg.pool)
     summary = apply_finetune_mode(model, cfg.finetune)
     dtok.tok.save_pretrained(out_dir / "tokenizer")
     (out_dir / "config.json").write_text(json.dumps({**asdict(cfg), "hidden": model.scorer.q.in_features if hasattr(model, "scorer") else None, **summary}, indent=2))
@@ -230,12 +232,13 @@ def load_checkpoint(out_dir: str | Path, device: torch.device | None = None):
     tiny = cfg.get("tiny", False)
     dtok, model = build_model(cfg["backbone"], cfg["readout"], tiny=tiny, use_confidence_head=cfg.get("use_confidence_head", False),
                               branch_layers=cfg.get("branch_layers", 3), max_state_tokens=cfg.get("max_state_tokens", 448),
-                              branch_through_backbone=cfg.get("branch_through_backbone", True))
+                              branch_through_backbone=cfg.get("branch_through_backbone", True),
+                              marker=cfg.get("marker", "new"), pool=cfg.get("pool", "marker"))  # old checkpoints predate these keys
     if not tiny:
         from transformers import AutoTokenizer
         from tde.model.encoding import DecisionTokenizer
         tok = AutoTokenizer.from_pretrained(out_dir / "tokenizer")
-        dtok = DecisionTokenizer(tok, max_state_tokens=cfg.get("max_state_tokens", 448))
+        dtok = DecisionTokenizer(tok, max_state_tokens=cfg.get("max_state_tokens", 448), marker=cfg.get("marker", "new"))
     apply_finetune_mode(model, cfg.get("finetune", "full"))
     state = torch.load(out_dir / "best.pt", map_location="cpu")
     model.load_state_dict(state, strict=False)

@@ -60,3 +60,15 @@ def gather_positions(h: torch.Tensor, positions: torch.Tensor) -> torch.Tensor:
     """h: [B,L,D]; positions: [B,K] -> [B,K,D]."""
     idx = positions.unsqueeze(-1).expand(-1, -1, h.size(-1))
     return torch.gather(h, 1, idx)
+
+
+def candidate_states(h: torch.Tensor, batch: dict, pool: str = "marker+span") -> torch.Tensor:
+    """Per-candidate representation [B,K,D]: the marker hidden state, the mean over the candidate's text span, or their sum."""
+    marker = gather_positions(h, batch["opt_positions"])
+    if pool == "marker" or "span_start" not in batch:
+        return marker
+    B, L, D = h.shape
+    pos = torch.arange(L, device=h.device).view(1, 1, L)
+    m = ((pos >= batch["span_start"].unsqueeze(-1)) & (pos < batch["span_end"].unsqueeze(-1))).to(h.dtype)  # [B,K,L]
+    span = torch.bmm(m, h) / m.sum(-1, keepdim=True).clamp_min(1.0)
+    return span if pool == "span" else marker + span

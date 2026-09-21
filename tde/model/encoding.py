@@ -27,15 +27,23 @@ class EncodedExample:
     level_index: list[int]        # per candidate: ordinal position for score, -1 otherwise
     target: list[float]
     primitive: str
+    spans: list[tuple[int, int]] | None = None  # [start, end) of each candidate's text tokens (joint/branch)
 
 
 class DecisionTokenizer:
-    def __init__(self, tokenizer, max_state_tokens: int = 448, max_question_tokens: int = 64, max_candidate_tokens: int = 24, max_total: int = 1024):
+    def __init__(self, tokenizer, max_state_tokens: int = 448, max_question_tokens: int = 64, max_candidate_tokens: int = 24,
+                 max_total: int = 1024, marker: str = "mask"):
+        """marker='mask' reuses the MLM [MASK] token as the [OPT]/[DECIDE] marker (its hidden state is pretrained to
+        summarise context); marker='new' adds two fresh special tokens (v1 behaviour, weaker in Exp 001)."""
         self.tok = tokenizer
-        added = tokenizer.add_special_tokens({"additional_special_tokens": [OPT_TOKEN, DECIDE_TOKEN]})
-        self.added_tokens = added
-        self.opt_id = tokenizer.convert_tokens_to_ids(OPT_TOKEN)
-        self.decide_id = tokenizer.convert_tokens_to_ids(DECIDE_TOKEN)
+        self.marker = marker
+        if marker == "mask" and tokenizer.mask_token_id is not None:
+            self.added_tokens = 0
+            self.opt_id = self.decide_id = tokenizer.mask_token_id
+        else:
+            self.added_tokens = tokenizer.add_special_tokens({"additional_special_tokens": [OPT_TOKEN, DECIDE_TOKEN]})
+            self.opt_id = tokenizer.convert_tokens_to_ids(OPT_TOKEN)
+            self.decide_id = tokenizer.convert_tokens_to_ids(DECIDE_TOKEN)
         self.cls_id = tokenizer.cls_token_id if tokenizer.cls_token_id is not None else tokenizer.bos_token_id
         self.sep_id = tokenizer.sep_token_id if tokenizer.sep_token_id is not None else tokenizer.eos_token_id
         self.pad_id = tokenizer.pad_token_id if tokenizer.pad_token_id is not None else (tokenizer.eos_token_id or 0)
@@ -58,21 +66,23 @@ class DecisionTokenizer:
             out.append(self.sep_id)
         return out
 
-    def _candidate_block(self, ex: DecisionExample) -> tuple[list[int], list[int], int, list[int]]:
-        ids, opt_pos, level_index = [], [], []
+    def _candidate_block(self, ex: DecisionExample) -> tuple[list[int], list[int], int, list[int], list[tuple[int, int]]]:
+        ids, opt_pos, level_index, spans = [], [], [], []
         for i, c in enumerate(ex.candidates):
             opt_pos.append(len(ids))
             ids.append(self.opt_id)
-            ids += self._ids(c.text(), self.max_candidate)
+            start = len(ids)
+            ids += self._ids(" " + c.text(), self.max_candidate)
+            spans.append((start, max(len(ids), start + 1)))
             level_index.append(i if ex.primitive == "score" else -1)
         decide_pos = len(ids)
         ids.append(self.decide_id)
-        return ids, opt_pos, decide_pos, level_index
+        return ids, opt_pos, decide_pos, level_index, spans
 
     # ---------------------------------------------------------------- modes
     def encode(self, ex: DecisionExample, mode: str) -> EncodedExample:
         q_ids = self._ids(ex.question, self.max_question)
-        cand_ids, opt_pos, decide_pos, level_index = self._candidate_block(ex)
+        cand_ids, opt_pos, decide_pos, level_index, spans = self._candidate_block(ex)
         if mode == "joint":
             # [CLS] state [SEP] question [SEP] [OPT] c1 ... [DECIDE] [SEP]
             budget = self.max_total - (len(q_ids) + len(cand_ids) + 4)
@@ -80,12 +90,14 @@ class DecisionTokenizer:
             prefix = [self.cls_id] + s_ids + [self.sep_id] + q_ids + [self.sep_id]
             input_ids = prefix + cand_ids + [self.sep_id]
             offset = len(prefix)
-            return EncodedExample(input_ids, [p + offset for p in opt_pos], decide_pos + offset, [], [], level_index, ex.target, ex.primitive)
+            return EncodedExample(input_ids, [p + offset for p in opt_pos], decide_pos + offset, [], [], level_index, ex.target, ex.primitive,
+                                  spans=[(a + offset, b + offset) for a, b in spans])
         if mode == "branch":
             state_ids = self._wrap(self._ids(ex.state, self.max_state))
             branch = [self.cls_id] + q_ids + [self.sep_id] + cand_ids + [self.sep_id]
             offset = len(q_ids) + 2
-            return EncodedExample(branch, [p + offset for p in opt_pos], decide_pos + offset, state_ids, [], level_index, ex.target, ex.primitive)
+            return EncodedExample(branch, [p + offset for p in opt_pos], decide_pos + offset, state_ids, [], level_index, ex.target, ex.primitive,
+                                  spans=[(a + offset, b + offset) for a, b in spans])
         if mode == "biencoder":
             s_ids = self._ids(ex.state, self.max_state)
             sq = [self.cls_id] + s_ids + [self.sep_id] + q_ids + [self.sep_id]
@@ -122,7 +134,12 @@ def collate(encoded: list[EncodedExample], pad_id: int, mode: str) -> dict[str, 
         opt = torch.zeros((len(encoded), kmax), dtype=torch.long)
         for i, e in enumerate(encoded):
             opt[i, : len(e.opt_positions)] = torch.tensor(e.opt_positions, dtype=torch.long)
-        batch.update(input_ids=ids, attention_mask=mask, opt_positions=opt,
+        span_start = torch.zeros((len(encoded), kmax), dtype=torch.long)
+        span_end = torch.ones((len(encoded), kmax), dtype=torch.long)
+        for i, e in enumerate(encoded):
+            for j, (a, b) in enumerate(e.spans or []):
+                span_start[i, j], span_end[i, j] = a, b
+        batch.update(input_ids=ids, attention_mask=mask, opt_positions=opt, span_start=span_start, span_end=span_end,
                      decide_positions=torch.tensor([e.decide_position for e in encoded], dtype=torch.long))
         if mode == "branch":
             # de-duplicate identical states so a shared state is encoded once

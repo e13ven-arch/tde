@@ -42,18 +42,19 @@ def load_backbone(name_or_path: str, tiny: bool = False):
 
 
 def build_model(backbone_name: str, readout: str, *, tiny: bool = False, use_confidence_head: bool = False,
-                branch_layers: int = 3, max_state_tokens: int = 448, branch_through_backbone: bool = True) -> tuple[DecisionTokenizer, nn.Module]:
+                branch_layers: int = 3, max_state_tokens: int = 448, branch_through_backbone: bool = True,
+                marker: str = "mask", pool: str = "marker+span") -> tuple[DecisionTokenizer, nn.Module]:
     tok, backbone, hidden = load_backbone(backbone_name, tiny=tiny)
-    dtok = DecisionTokenizer(tok, max_state_tokens=max_state_tokens)
+    dtok = DecisionTokenizer(tok, max_state_tokens=max_state_tokens, marker=marker)
     if dtok.added_tokens:
         backbone.resize_token_embeddings(len(tok))
     cls = READOUTS[readout]
     if readout == "branch":
         heads = max(1, hidden // 64)
         model = cls(backbone, hidden, n_layers=branch_layers, n_heads=heads, use_confidence_head=use_confidence_head,
-                    branch_through_backbone=branch_through_backbone)
+                    branch_through_backbone=branch_through_backbone, pool=pool)
     else:
-        model = cls(backbone, hidden, use_confidence_head=use_confidence_head) if readout == "joint" else cls(backbone, hidden)
+        model = cls(backbone, hidden, use_confidence_head=use_confidence_head, pool=pool) if readout == "joint" else cls(backbone, hidden)
     return dtok, model
 
 
