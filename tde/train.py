@@ -66,6 +66,7 @@ class TrainConfig:
     device: str = "auto"
     bf16: bool = True
     tiny: bool = False                # random tiny backbone for smoke tests
+    init_from: str | None = None      # run directory whose best.pt initialises this run (continued / second-stage training)
     notes: str = ""
     extra: dict = field(default_factory=dict)
 
@@ -212,6 +213,10 @@ def train(cfg: TrainConfig) -> dict:
     dtok, model = build_model(cfg.backbone, cfg.readout, tiny=cfg.tiny, use_confidence_head=cfg.use_confidence_head,
                               branch_layers=cfg.branch_layers, max_state_tokens=cfg.max_state_tokens,
                               branch_through_backbone=cfg.branch_through_backbone, marker=cfg.marker, pool=cfg.pool)
+    if cfg.init_from:
+        state = torch.load(Path(cfg.init_from) / "best.pt", map_location="cpu")
+        missing, unexpected = model.load_state_dict(state, strict=False)
+        print(f"[train] init_from {cfg.init_from}: missing={len(missing)} unexpected={len(unexpected)}")
     summary = apply_finetune_mode(model, cfg.finetune)
     dtok.tok.save_pretrained(out_dir / "tokenizer")
     (out_dir / "config.json").write_text(json.dumps({**asdict(cfg), "hidden": model.scorer.q.in_features if hasattr(model, "scorer") else None, **summary}, indent=2))
