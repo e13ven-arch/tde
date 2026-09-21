@@ -88,7 +88,7 @@ def _render_rows_classification(
             out += render_classification(
                 rng=rng, dataset=spec.name, source_id=source_id, split=split, state=state, label_idx=label_idx,
                 label_names=label_names, label_descriptions=label_descriptions, templates=train_t,
-                n_rewrites=N_REWRITES_TRAIN, k_max=k_max, target_dist=dist,
+                n_rewrites=N_REWRITES_TRAIN, k_max=k_max, target_dist=dist, p_full_k=spec.p_full_k,
             )
         else:
             out += render_classification(

@@ -141,6 +141,7 @@ def render_classification(
     extra_meta: dict | None = None,
     k_fixed: int | None = None,
     id_suffix: str = "",
+    p_full_k: float = 0.0,
 ) -> list[DecisionExample]:
     """Render up to `n_rewrites` examples for one single-label (or soft-label) row.
 
@@ -156,7 +157,12 @@ def render_classification(
         if extra_meta:
             meta.update(extra_meta)
         if t.primitive == "choice":
-            k = min(n_labels, k_fixed) if k_fixed else (min(n_labels, rng.randint(2, k_max)) if n_labels > 2 else n_labels)
+            if k_fixed:
+                k = min(n_labels, k_fixed)
+            elif n_labels > 2 and p_full_k and rng.random() < p_full_k:
+                k = n_labels
+            else:
+                k = min(n_labels, rng.randint(2, k_max)) if n_labels > 2 else n_labels
             others = [i for i in range(n_labels) if i != label_idx]
             chosen = [label_idx] + rng.sample(others, k - 1)
             rng.shuffle(chosen)
