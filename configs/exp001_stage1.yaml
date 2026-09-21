@@ -5,6 +5,7 @@ finetune: full
 data_dir: data/v0.1
 out_dir: runs/exp001s1_joint_full
 per_dataset_cap: 20000
+group_by_state: true
 eval_limit: 3000
 epochs: 2
 batch_size: 4

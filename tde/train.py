@@ -34,6 +34,7 @@ class TrainConfig:
     out_dir: str = "runs/debug"
     train_limit: int | None = None
     per_dataset_cap: int | None = None  # balance the mix: keep at most N training examples per dataset
+    group_by_state: bool = False        # keep rewrites of the same source item adjacent so a batch shares states (branch/biencoder)
     eval_limit: int | None = 2000
     epochs: float = 1.0
     max_steps: int | None = None
@@ -171,12 +172,23 @@ def train(cfg: TrainConfig) -> dict:
     log_f = (out_dir / "log.jsonl").open("a")
     best_nll, step, t0 = float("inf"), 0, time.time()
     order = list(range(len(train_ex)))
+    groups: list[list[int]] | None = None
+    if cfg.group_by_state:
+        by_src: dict[str, list[int]] = {}
+        for i, e in enumerate(train_ex):
+            by_src.setdefault(e.source_id, []).append(i)
+        groups = list(by_src.values())
+        print(f"[train] group_by_state: {len(groups)} source items, {len(train_ex)/len(groups):.1f} examples each")
     mode = model.mode
     micro = 0
     running: dict[str, float] = {}
     done = False
     while not done:
-        rng.shuffle(order)
+        if groups is not None:
+            rng.shuffle(groups)
+            order = [i for g in groups for i in g]
+        else:
+            rng.shuffle(order)
         for i in range(0, len(order), cfg.batch_size):
             chunk = [train_ex[j] for j in order[i : i + cfg.batch_size]]
             model.train()
