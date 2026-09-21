@@ -1,0 +1,3 @@
+# config|readout|out_dir|extra
+configs/exp001_stage1.yaml|joint|runs/exp001s1_joint_full|
+configs/exp001_stage1.yaml|branch|runs/exp001s1_branch_full|
