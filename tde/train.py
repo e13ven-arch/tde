@@ -1,0 +1,231 @@
+"""Device-agnostic trainer for the three readout models.
+
+Checkpoint layout (out_dir/):
+    config.json      backbone, readout, hidden, tiny, finetune, loss weights
+    tokenizer/       HF tokenizer with [OPT]/[DECIDE] added
+    best.pt          state_dict selected by calibration NLL
+    log.jsonl        one line per logging step
+"""
+from __future__ import annotations
+
+import json
+import math
+import random
+import time
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
+
+import numpy as np
+import torch
+
+from tde.calibration.metrics import Predictions, summarize
+from tde.losses import log_probs, total_loss
+from tde.model.encoding import collate
+from tde.model.factory import apply_finetune_mode, build_model, pick_device
+from tde.schema import DecisionExample, load_jsonl
+
+
+@dataclass
+class TrainConfig:
+    backbone: str = "answerdotai/ModernBERT-base"
+    readout: str = "joint"            # joint | branch | biencoder
+    finetune: str = "full"            # full | frozen80 | lora
+    data_dir: str = "data/v0.1"
+    out_dir: str = "runs/debug"
+    train_limit: int | None = None
+    eval_limit: int | None = 2000
+    epochs: float = 1.0
+    max_steps: int | None = None
+    batch_size: int = 16
+    grad_accum: int = 2
+    lr_backbone: float = 2e-5
+    lr_head: float = 1e-4
+    layer_decay: float = 0.9
+    weight_decay: float = 0.01
+    warmup_ratio: float = 0.05
+    max_grad_norm: float = 1.0
+    w_ce: float = 1.0
+    w_brier: float = 0.0
+    w_rps: float = 0.0
+    w_perm: float = 0.0
+    w_conf: float = 0.0
+    use_confidence_head: bool = False
+    branch_layers: int = 3
+    max_state_tokens: int = 448
+    eval_every: int = 500
+    log_every: int = 25
+    seed: int = 0
+    device: str = "auto"
+    bf16: bool = True
+    tiny: bool = False                # random tiny backbone for smoke tests
+    notes: str = ""
+    extra: dict = field(default_factory=dict)
+
+
+def set_seed(seed: int) -> None:
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
+
+def _param_groups(model, cfg: TrainConfig):
+    backbone_ids = {id(p) for p in model.backbone.parameters()}
+    named = list(model.backbone.named_parameters())
+    # layer-wise lr decay: later layers get higher lr; assign by order of appearance
+    n = len(named)
+    groups = []
+    for i, (name, p) in enumerate(named):
+        if not p.requires_grad:
+            continue
+        depth = i / max(n - 1, 1)
+        lr = cfg.lr_backbone * (cfg.layer_decay ** ((1 - depth) * 12))
+        wd = 0.0 if (p.ndim == 1 or "bias" in name or "norm" in name.lower()) else cfg.weight_decay
+        groups.append({"params": [p], "lr": lr, "weight_decay": wd})
+    heads = [p for p in model.parameters() if id(p) not in backbone_ids and p.requires_grad]
+    groups.append({"params": heads, "lr": cfg.lr_head, "weight_decay": cfg.weight_decay})
+    return groups
+
+
+def _to(batch: dict, device: torch.device) -> dict:
+    return {k: (v.to(device) if isinstance(v, torch.Tensor) else v) for k, v in batch.items()}
+
+
+def _permute(examples: list[DecisionExample], rng: random.Random) -> tuple[list[DecisionExample], torch.Tensor]:
+    kmax = max(e.k for e in examples)
+    perms, out = torch.arange(kmax).unsqueeze(0).repeat(len(examples), 1), []
+    for i, e in enumerate(examples):
+        order = list(range(e.k))
+        rng.shuffle(order)
+        perms[i, : e.k] = torch.tensor(order)
+        out.append(e.with_candidate_order(order))
+    return out, perms
+
+
+@torch.no_grad()
+def predict(model, dtok, examples: list[DecisionExample], device: torch.device, batch_size: int = 32, bf16: bool = True) -> list[np.ndarray]:
+    """Return raw logits (length K each) for every example, in order."""
+    model.eval()
+    mode = model.mode
+    out: list[np.ndarray] = []
+    use_amp = bf16 and device.type == "cuda"
+    for i in range(0, len(examples), batch_size):
+        chunk = examples[i : i + batch_size]
+        batch = _to(collate([dtok.encode(e, mode) for e in chunk], dtok.pad_id, mode), device)
+        with torch.autocast(device_type=device.type, dtype=torch.bfloat16, enabled=use_amp):
+            res = model(batch)
+        logits = res["logits"].float().cpu()
+        for j, e in enumerate(chunk):
+            out.append(logits[j, : e.k].numpy())
+    return out
+
+
+def evaluate(model, dtok, examples: list[DecisionExample], device, batch_size=32, bf16=True) -> dict:
+    logits = predict(model, dtok, examples, device, batch_size, bf16)
+    probs = []
+    for z in logits:
+        z = z - z.max()
+        p = np.exp(z)
+        probs.append(p / p.sum())
+    P = Predictions(probs, [np.array(e.target) for e in examples], groups=[e.source_id for e in examples],
+                    ordinal=[e.primitive == "score" for e in examples])
+    return summarize(P)
+
+
+def train(cfg: TrainConfig) -> dict:
+    set_seed(cfg.seed)
+    device = pick_device(cfg.device)
+    out_dir = Path(cfg.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "config.json").write_text(json.dumps(asdict(cfg), indent=2))
+
+    train_ex = load_jsonl(Path(cfg.data_dir) / "train.jsonl", cfg.train_limit)
+    cal_ex = load_jsonl(Path(cfg.data_dir) / "calibration.jsonl", cfg.eval_limit)
+    dtok, model = build_model(cfg.backbone, cfg.readout, tiny=cfg.tiny, use_confidence_head=cfg.use_confidence_head,
+                              branch_layers=cfg.branch_layers, max_state_tokens=cfg.max_state_tokens)
+    summary = apply_finetune_mode(model, cfg.finetune)
+    dtok.tok.save_pretrained(out_dir / "tokenizer")
+    (out_dir / "config.json").write_text(json.dumps({**asdict(cfg), "hidden": model.scorer.q.in_features if hasattr(model, "scorer") else None, **summary}, indent=2))
+    model.to(device)
+    print(f"[train] device={device} readout={cfg.readout} finetune={cfg.finetune} params={summary['total_params']/1e6:.1f}M trainable={summary['trainable_params']/1e6:.1f}M train={len(train_ex)} cal={len(cal_ex)}")
+
+    steps_per_epoch = math.ceil(len(train_ex) / (cfg.batch_size * cfg.grad_accum))
+    total_steps = cfg.max_steps or max(1, int(steps_per_epoch * cfg.epochs))
+    warmup = max(1, int(total_steps * cfg.warmup_ratio))
+    opt = torch.optim.AdamW(_param_groups(model, cfg), betas=(0.9, 0.98), eps=1e-6)
+    sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1.0, (s + 1) / warmup) * max(0.0, (total_steps - s) / max(1, total_steps - warmup)))
+    use_amp = cfg.bf16 and device.type == "cuda"
+    rng = random.Random(cfg.seed)
+    log_f = (out_dir / "log.jsonl").open("a")
+    best_nll, step, t0 = float("inf"), 0, time.time()
+    order = list(range(len(train_ex)))
+    mode = model.mode
+    micro = 0
+    running: dict[str, float] = {}
+    done = False
+    while not done:
+        rng.shuffle(order)
+        for i in range(0, len(order), cfg.batch_size):
+            chunk = [train_ex[j] for j in order[i : i + cfg.batch_size]]
+            model.train()
+            batch = _to(collate([dtok.encode(e, mode) for e in chunk], dtok.pad_id, mode), device)
+            with torch.autocast(device_type=device.type, dtype=torch.bfloat16, enabled=use_amp):
+                out = model(batch)
+                out_perm, perm = None, None
+                if cfg.w_perm > 0:
+                    pchunk, perm = _permute(chunk, rng)
+                    pbatch = _to(collate([dtok.encode(e, mode) for e in pchunk], dtok.pad_id, mode), device)
+                    out_perm = model(pbatch)
+                    perm = perm.to(device)
+                loss, parts = total_loss(out, batch, w_ce=cfg.w_ce, w_brier=cfg.w_brier, w_rps=cfg.w_rps, w_perm=cfg.w_perm,
+                                         out_perm=out_perm, perm=perm, w_conf=cfg.w_conf)
+            (loss / cfg.grad_accum).backward()
+            for k, v in parts.items():
+                running[k] = running.get(k, 0.0) + v
+            running["loss"] = running.get("loss", 0.0) + float(loss.detach())
+            micro += 1
+            if micro % cfg.grad_accum != 0:
+                continue
+            torch.nn.utils.clip_grad_norm_([p for p in model.parameters() if p.requires_grad], cfg.max_grad_norm)
+            opt.step(); sched.step(); opt.zero_grad(set_to_none=True)
+            step += 1
+            if step % cfg.log_every == 0:
+                rec = {"step": step, "elapsed_s": round(time.time() - t0, 1), "lr_head": sched.get_last_lr()[-1],
+                       **{k: v / (cfg.log_every * cfg.grad_accum) for k, v in running.items()}}
+                running = {}
+                print("[train]", json.dumps(rec)); log_f.write(json.dumps(rec) + "\n"); log_f.flush()
+            if step % cfg.eval_every == 0 or step >= total_steps:
+                ev = evaluate(model, dtok, cal_ex, device, cfg.batch_size * 2, cfg.bf16) if cal_ex else {}
+                rec = {"step": step, "eval": ev}
+                print("[eval]", json.dumps({k: (round(v, 4) if isinstance(v, float) else v) for k, v in ev.items()}))
+                log_f.write(json.dumps(rec) + "\n"); log_f.flush()
+                if ev and ev["nll"] < best_nll:
+                    best_nll = ev["nll"]
+                    torch.save(model.state_dict(), out_dir / "best.pt")
+                    (out_dir / "best_eval.json").write_text(json.dumps({"step": step, **ev}, indent=2))
+            if step >= total_steps:
+                done = True
+                break
+    if not (out_dir / "best.pt").exists():
+        torch.save(model.state_dict(), out_dir / "best.pt")
+    log_f.close()
+    return {"steps": step, "best_nll": best_nll, "out_dir": str(out_dir), **summary}
+
+
+def load_checkpoint(out_dir: str | Path, device: torch.device | None = None):
+    """Rebuild tokenizer + model from a run directory."""
+    out_dir = Path(out_dir)
+    cfg = json.loads((out_dir / "config.json").read_text())
+    device = device or pick_device(cfg.get("device", "auto"))
+    tiny = cfg.get("tiny", False)
+    dtok, model = build_model(cfg["backbone"], cfg["readout"], tiny=tiny, use_confidence_head=cfg.get("use_confidence_head", False),
+                              branch_layers=cfg.get("branch_layers", 3), max_state_tokens=cfg.get("max_state_tokens", 448))
+    if not tiny:
+        from transformers import AutoTokenizer
+        from tde.model.encoding import DecisionTokenizer
+        tok = AutoTokenizer.from_pretrained(out_dir / "tokenizer")
+        dtok = DecisionTokenizer(tok, max_state_tokens=cfg.get("max_state_tokens", 448))
+    apply_finetune_mode(model, cfg.get("finetune", "full"))
+    state = torch.load(out_dir / "best.pt", map_location="cpu")
+    model.load_state_dict(state, strict=False)
+    model.to(device).eval()
+    return dtok, model, cfg, device

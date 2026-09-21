@@ -1,0 +1,15 @@
+# Tiny real-backbone run to verify the pipeline on one machine (MPS or CUDA) in a few minutes.
+backbone: answerdotai/ModernBERT-base
+readout: joint
+finetune: full
+data_dir: data/v0.1
+out_dir: runs/smoke_modernbert
+train_limit: 2000
+eval_limit: 500
+max_steps: 60
+batch_size: 8
+grad_accum: 1
+eval_every: 30
+log_every: 10
+w_rps: 0.5
+max_state_tokens: 256
