@@ -127,6 +127,33 @@ def predict(model, dtok, examples: list[DecisionExample], device: torch.device, 
     return out
 
 
+@torch.no_grad()
+def predict_chunked(model, dtok, examples: list[DecisionExample], device: torch.device, chunk_k: int = 12,
+                    batch_size: int = 32, bf16: bool = True) -> list[np.ndarray]:
+    """Score candidate sets larger than `chunk_k` in chunks (state repeated), concatenating chunk logits.
+
+    Approximates a pointwise readout at inference so a model trained with K <= chunk_k can be queried with
+    hundreds of options; exact when the readout is order/set independent."""
+    pieces: list[tuple[int, list[int], DecisionExample]] = []
+    for i, e in enumerate(examples):
+        if e.k <= chunk_k:
+            pieces.append((i, list(range(e.k)), e))
+        else:
+            order = list(range(e.k))
+            for s in range(0, e.k, chunk_k):
+                idx = order[s : s + chunk_k]
+                if len(idx) < 2:  # a trailing singleton gets a partner so the listwise softmax is well defined
+                    idx = order[s - 1 : s + chunk_k]
+                pieces.append((i, idx, e.with_candidate_order(idx)))
+    logits = predict(model, dtok, [p[2] for p in pieces], device, batch_size, bf16)
+    out: list[np.ndarray] = [np.full(e.k, np.nan) for e in examples]
+    for (i, idx, _), z in zip(pieces, logits):
+        for j, c in enumerate(idx):
+            if np.isnan(out[i][c]):
+                out[i][c] = z[j]
+    return out
+
+
 def evaluate(model, dtok, examples: list[DecisionExample], device, batch_size=32, bf16=True) -> dict:
     logits = predict(model, dtok, examples, device, batch_size, bf16)
     probs = []
