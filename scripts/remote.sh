@@ -18,7 +18,7 @@ RSYNC="rsync -az"
 cmd="${1:-}"; shift || true
 case "$cmd" in
   sync)
-    $RSYNC --delete --exclude .venv --exclude data --exclude runs --exclude .git --exclude '__pycache__' ./ "$REMOTE:$REMOTE_DIR/" ;;
+    $RSYNC --delete --exclude /.venv --exclude /data --exclude /runs --exclude /.git --exclude '__pycache__' ./ "$REMOTE:$REMOTE_DIR/" ;;
   setup)
     # Host has Python 3.14 (no torch wheels yet) but miniconda: build a 3.12 env, then a project venv from it.
     $SSH "$REMOTE" "set -e; cd $REMOTE_DIR; CONDA=\$HOME/miniconda3/bin/conda; if [ -x \$CONDA ] && [ ! -x \$HOME/miniconda3/envs/py312/bin/python ]; then \$CONDA create -y -q -n py312 python=3.12 >/dev/null; fi; PYB=\$HOME/miniconda3/envs/py312/bin/python; [ -x \$PYB ] || PYB=$PY; [ -x .venv/bin/python ] || \$PYB -m venv .venv; .venv/bin/pip install -q -U pip; .venv/bin/pip install -q -e '.[dev,baselines]'; .venv/bin/python -c 'import torch;print(\"torch\", torch.__version__, \"cuda\", torch.cuda.is_available(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"\")'" ;;
