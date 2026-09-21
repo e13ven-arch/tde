@@ -1,0 +1,2 @@
+# config|readout|out_dir|extra
+configs/exp006_kcurriculum.yaml|joint|runs/exp006_kcurriculum_joint|
