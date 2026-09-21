@@ -33,6 +33,7 @@ class TrainConfig:
     data_dir: str = "data/v0.1"
     out_dir: str = "runs/debug"
     train_limit: int | None = None
+    per_dataset_cap: int | None = None  # balance the mix: keep at most N training examples per dataset
     eval_limit: int | None = 2000
     epochs: float = 1.0
     max_steps: int | None = None
@@ -138,7 +139,15 @@ def train(cfg: TrainConfig) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "config.json").write_text(json.dumps(asdict(cfg), indent=2))
 
-    train_ex = load_jsonl(Path(cfg.data_dir) / "train.jsonl", cfg.train_limit)
+    train_ex = load_jsonl(Path(cfg.data_dir) / "train.jsonl", cfg.train_limit if not cfg.per_dataset_cap else None)
+    if cfg.per_dataset_cap:
+        seen: dict[str, int] = {}
+        kept = []
+        for e in train_ex:
+            if seen.get(e.dataset, 0) < cfg.per_dataset_cap:
+                kept.append(e); seen[e.dataset] = seen.get(e.dataset, 0) + 1
+        train_ex = kept[: cfg.train_limit] if cfg.train_limit else kept
+        print(f"[train] per-dataset cap {cfg.per_dataset_cap}: {seen}")
     cal_ex = load_jsonl(Path(cfg.data_dir) / "calibration.jsonl", cfg.eval_limit)
     dtok, model = build_model(cfg.backbone, cfg.readout, tiny=cfg.tiny, use_confidence_head=cfg.use_confidence_head,
                               branch_layers=cfg.branch_layers, max_state_tokens=cfg.max_state_tokens)

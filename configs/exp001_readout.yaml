@@ -5,7 +5,8 @@ readout: joint
 finetune: full
 data_dir: data/v0.1
 out_dir: runs/exp001_joint_full
-train_limit: 60000        # Stage 0 cap; raise for Stage 1
+train_limit: 80000        # Stage 0 cap; raise for Stage 1
+per_dataset_cap: 10000    # balanced mix over the 8 datasets
 eval_limit: 3000
 epochs: 1
 batch_size: 16
