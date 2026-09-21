@@ -9,8 +9,8 @@ train_limit: 80000        # Stage 0 cap; raise for Stage 1
 per_dataset_cap: 10000    # balanced mix over the 8 datasets
 eval_limit: 3000
 epochs: 1
-batch_size: 8
-grad_accum: 4
+batch_size: 4
+grad_accum: 8
 lr_backbone: 2.0e-5
 lr_head: 1.0e-4
 layer_decay: 0.9

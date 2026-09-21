@@ -3,7 +3,7 @@
 #   nohup bash scripts/run_exp001.sh > runs/exp001.log 2>&1 &
 set -uo pipefail
 cd "$(dirname "$0")/.."
-export PATH="/usr/lib/wsl/lib:$PATH" HF_HUB_DISABLE_PROGRESS_BARS=1 TOKENIZERS_PARALLELISM=false HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-1}"
+export PATH="/usr/lib/wsl/lib:$PATH" HF_HUB_DISABLE_PROGRESS_BARS=1 TOKENIZERS_PARALLELISM=false HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-1}" PYTHONUNBUFFERED=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 # Triton (torch.compile) needs a C compiler: prefer the conda-forge gcc installed without sudo, else disable compile.
 CONDA_GCC="$HOME/miniconda3/envs/py312/bin/x86_64-conda-linux-gnu-gcc"
 if command -v gcc >/dev/null; then export CC=gcc
