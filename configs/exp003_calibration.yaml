@@ -8,8 +8,8 @@ train_limit: 80000
 per_dataset_cap: 10000
 eval_limit: 3000
 epochs: 1
-batch_size: 16
-grad_accum: 2
+batch_size: 8
+grad_accum: 4
 w_ce: 1.0
 w_brier: 0.0
 w_rps: 0.0
