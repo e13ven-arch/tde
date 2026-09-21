@@ -3,7 +3,7 @@
 #   nohup bash scripts/run_exp001.sh > runs/exp001.log 2>&1 &
 set -uo pipefail
 cd "$(dirname "$0")/.."
-export PATH="/usr/lib/wsl/lib:$PATH" HF_HUB_DISABLE_PROGRESS_BARS=1 TOKENIZERS_PARALLELISM=false
+export PATH="/usr/lib/wsl/lib:$PATH" HF_HUB_DISABLE_PROGRESS_BARS=1 TOKENIZERS_PARALLELISM=false HF_HUB_OFFLINE=1
 READOUTS="${READOUTS:-joint branch biencoder}"
 EXTRA="${EXTRA:-}"
 for r in $READOUTS; do
