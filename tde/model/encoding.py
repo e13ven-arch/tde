@@ -83,8 +83,8 @@ class DecisionTokenizer:
             return EncodedExample(input_ids, [p + offset for p in opt_pos], decide_pos + offset, [], [], level_index, ex.target, ex.primitive)
         if mode == "branch":
             state_ids = self._wrap(self._ids(ex.state, self.max_state))
-            branch = q_ids + [self.sep_id] + cand_ids
-            offset = len(q_ids) + 1
+            branch = [self.cls_id] + q_ids + [self.sep_id] + cand_ids + [self.sep_id]
+            offset = len(q_ids) + 2
             return EncodedExample(branch, [p + offset for p in opt_pos], decide_pos + offset, state_ids, [], level_index, ex.target, ex.primitive)
         if mode == "biencoder":
             s_ids = self._ids(ex.state, self.max_state)
