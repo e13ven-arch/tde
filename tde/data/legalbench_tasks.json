@@ -1,0 +1,1677 @@
+{
+ "abercrombie": {
+  "kind": "choice",
+  "labels": [
+   "generic",
+   "descriptive",
+   "suggestive",
+   "arbitrary",
+   "fanciful"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "A mark is generic if it is the common name for the product. A mark is descriptive if it describes a purpose, nature, or attribute of the product. A mark is suggestive if it suggests or implies a quality or characteristic of the product. A mark is arbitrary if it is a real English word that has no relation to the product. A mark is fanciful if it is an invented word.",
+  "n_test": 95,
+  "n_train": 5
+ },
+ "canada_tax_court_outcomes": {
+  "kind": "choice",
+  "labels": [
+   "dismissed",
+   "allowed",
+   "other"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "INSTRUCTIONS: Indicate whether the following judgment excerpt from a Tax Court of Canada decision allows the appeal or dismisses the appeal. Where the result is mixed, indicate that the appeal was allowed. Ignore costs orders. Where the outcome is unclear indicate other.  \nOptions: allowed, dimissed, other\n\nJUDGMENT EXCERPT: \nOUTCOME:",
+  "n_test": 244,
+  "n_train": 6
+ },
+ "citation_prediction_classification": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "citation"
+  ],
+  "instruction": "Can the case can be used as a citation for the provided text?",
+  "n_test": 108,
+  "n_train": 2
+ },
+ "contract_nli_confidentiality_of_agreement": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Identify if the clause provides that the Receiving Party shall not disclose the fact that Agreement was agreed or negotiated.",
+  "n_test": 82,
+  "n_train": 8
+ },
+ "contract_nli_explicit_identification": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Identify if the clause provides that all Confidential Information shall be expressly identified by the Disclosing Party.",
+  "n_test": 109,
+  "n_train": 8
+ },
+ "contract_nli_inclusion_of_verbally_conveyed_information": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Identify if the clause provides that Confidential Information may include verbally conveyed information.",
+  "n_test": 139,
+  "n_train": 8
+ },
+ "contract_nli_limited_use": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Identify if the clause provides that the Receiving Party shall not use any Confidential Information for any purpose other than the purposes stated in Agreement.",
+  "n_test": 208,
+  "n_train": 8
+ },
+ "contract_nli_no_licensing": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Identify if the clause provides that the Agreement shall not grant Receiving Party any right to Confidential Information.",
+  "n_test": 162,
+  "n_train": 8
+ },
+ "contract_nli_notice_on_compelled_disclosure": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Identify if the clause provides that the Receiving Party shall notify Disclosing Party in case Receiving Party is required by law, regulation or judicial process to disclose any Confidential Information.",
+  "n_test": 142,
+  "n_train": 8
+ },
+ "contract_nli_permissible_acquirement_of_similar_information": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Identify if the clause provides that the Receiving Party may acquire information similar to Confidential Information from a third party.",
+  "n_test": 178,
+  "n_train": 8
+ },
+ "contract_nli_permissible_copy": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Identify if the clause provides that the Receiving Party may create a copy of some Confidential Information in some circumstances.",
+  "n_test": 87,
+  "n_train": 8
+ },
+ "contract_nli_permissible_development_of_similar_information": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Identify if the clause provides that the Receiving Party may independently develop information similar to Confidential Information.",
+  "n_test": 136,
+  "n_train": 8
+ },
+ "contract_nli_permissible_post-agreement_possession": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Identify if the clause provides that the Receiving Party may retain some Confidential Information even after the return or destruction of Confidential Information.",
+  "n_test": 111,
+  "n_train": 8
+ },
+ "contract_nli_return_of_confidential_information": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Identify if the clause provides that the Receiving Party shall destroy or return some Confidential Information upon the termination of Agreement.",
+  "n_test": 66,
+  "n_train": 8
+ },
+ "contract_nli_sharing_with_employees": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Identify if the clause provides that the Receiving Party may share some Confidential Information with some of Receiving Party's employees.",
+  "n_test": 170,
+  "n_train": 8
+ },
+ "contract_nli_sharing_with_third-parties": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Identify if the clause provides that the Receiving Party may share some Confidential Information with some third-parties (including consultants, agents and professional advisors).",
+  "n_test": 180,
+  "n_train": 8
+ },
+ "contract_nli_survival_of_obligations": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Identify if the clause provides that ome obligations of Agreement may survive termination of Agreement.",
+  "n_test": 157,
+  "n_train": 8
+ },
+ "contract_qa": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "question",
+   "text"
+  ],
+  "instruction": "Answer the question.",
+  "n_test": 80,
+  "n_train": 8
+ },
+ "cuad_affiliate_license-licensee": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause describe a license grant to a licensee (incl. sublicensor) and the affiliates of such licensee/sublicensor?",
+  "n_test": 198,
+  "n_train": 6
+ },
+ "cuad_affiliate_license-licensor": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause describe a license grant by affiliates of the licensor or that includes intellectual property of affiliates of the licensor?",
+  "n_test": 88,
+  "n_train": 6
+ },
+ "cuad_anti-assignment": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause require consent or notice of a party if the contract is assigned to a third party?",
+  "n_test": 1172,
+  "n_train": 6
+ },
+ "cuad_audit_rights": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause give a party the right to audit the books, records, or physical locations of the counterparty to ensure compliance with the contract?",
+  "n_test": 1216,
+  "n_train": 6
+ },
+ "cuad_cap_on_liability": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause specify a cap on liability upon the breach of a party’s obligation? This includes time limitation for the counterparty to bring claims or maximum amount for recovery.",
+  "n_test": 1246,
+  "n_train": 6
+ },
+ "cuad_change_of_control": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause give one party the right to terminate or is consent or notice required of the counterparty if such party undergoes a change of control, such as a merger, stock sale, transfer of all or substantially all of its assets or business, or assignment by operation of law?",
+  "n_test": 416,
+  "n_train": 6
+ },
+ "cuad_competitive_restriction_exception": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause mention exceptions or carveouts to Non-Compete, Exclusivity and No-Solicit of Customers?",
+  "n_test": 220,
+  "n_train": 6
+ },
+ "cuad_covenant_not_to_sue": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Is a party restricted from contesting the validity of the counterparty’s ownership of intellectual property or otherwise bringing a claim against the counterparty for matters unrelated to the contract?",
+  "n_test": 308,
+  "n_train": 6
+ },
+ "cuad_effective_date": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause specify the date upon which the agreement becomes effective?",
+  "n_test": 236,
+  "n_train": 6
+ },
+ "cuad_exclusivity": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause specify exclusive dealing commitment with the counterparty? This includes a commitment to procure all “requirements” from one party of certain technology, goods, or services or a prohibition on licensing or selling technology, goods or services to third parties, or a prohibition on collaborating or working with other parties), whether during the contract or after the contract ends (or both).",
+  "n_test": 762,
+  "n_train": 6
+ },
+ "cuad_expiration_date": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause specify the date upon which the initial term expires?",
+  "n_test": 876,
+  "n_train": 6
+ },
+ "cuad_governing_law": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause specify which state/country's law governs the contract?",
+  "n_test": 876,
+  "n_train": 6
+ },
+ "cuad_insurance": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Is there a requirement for insurance that must be maintained by one party for the benefit of the counterparty?",
+  "n_test": 1030,
+  "n_train": 6
+ },
+ "cuad_ip_ownership_assignment": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does intellectual property created by one party become the property of the counterparty, either per the terms of the contract or upon the occurrence of certain events?",
+  "n_test": 576,
+  "n_train": 6
+ },
+ "cuad_irrevocable_or_perpetual_license": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause specify a license grant that is irrevocable or perpetual?",
+  "n_test": 280,
+  "n_train": 6
+ },
+ "cuad_joint_ip_ownership": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause provide for joint or shared ownership of intellectual property between the parties to the contract?",
+  "n_test": 192,
+  "n_train": 6
+ },
+ "cuad_license_grant": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause contain a license granted by one party to its counterparty?",
+  "n_test": 1396,
+  "n_train": 6
+ },
+ "cuad_liquidated_damages": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause award either party liquidated damages for breach or a fee upon the termination of a contract (termination fee)?",
+  "n_test": 220,
+  "n_train": 6
+ },
+ "cuad_minimum_commitment": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause specify a minimum order size or minimum amount or units pertime period that one party must buy from the counterparty?",
+  "n_test": 772,
+  "n_train": 6
+ },
+ "cuad_most_favored_nation": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause state that if a third party gets better terms on the licensing or sale of technology/goods/services described in the contract, the buyer of such technology/goods/services under the contract shall be entitled to those better terms?",
+  "n_test": 64,
+  "n_train": 6
+ },
+ "cuad_no-solicit_of_customers": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause restrict a party from contracting or soliciting customers or partners of the counterparty, whether during the contract or after the contract ends (or both)?",
+  "n_test": 84,
+  "n_train": 6
+ },
+ "cuad_no-solicit_of_employees": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause restrict a party’s soliciting or hiring employees and/or contractors from the counterparty, whether during the contract or after the contract ends (or both)?",
+  "n_test": 142,
+  "n_train": 6
+ },
+ "cuad_non-compete": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause restrict the ability of a party to compete with the counterparty or operate in a certain geography or business or technology sector?",
+  "n_test": 442,
+  "n_train": 6
+ },
+ "cuad_non-disparagement": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause require a party not to disparage the counterparty?",
+  "n_test": 100,
+  "n_train": 6
+ },
+ "cuad_non-transferable_license": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause limit the ability of a party to transfer the license being granted to a third party?",
+  "n_test": 542,
+  "n_train": 6
+ },
+ "cuad_notice_period_to_terminate_renewal": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause specify a notice period required to terminate renewal?",
+  "n_test": 222,
+  "n_train": 6
+ },
+ "cuad_post-termination_services": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause subject a party to obligations after the termination or expiration of a contract, including any post-termination transition, payment, transfer of IP, wind-down, last-buy, or similar commitments?",
+  "n_test": 808,
+  "n_train": 6
+ },
+ "cuad_price_restrictions": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause place a restriction on the ability of a party to raise or reduce prices of technology, goods, or services provided?",
+  "n_test": 46,
+  "n_train": 6
+ },
+ "cuad_renewal_term": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause specify a renewal term?",
+  "n_test": 386,
+  "n_train": 6
+ },
+ "cuad_revenue-profit_sharing": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause require a party to share revenue or profit with the counterparty for any technology, goods, or services?",
+  "n_test": 774,
+  "n_train": 6
+ },
+ "cuad_rofr-rofo-rofn": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause grant one party a right of first refusal, right of first offer or right of first negotiation to purchase, license, market, or distribute equity interest, technology, assets, products or services?",
+  "n_test": 690,
+  "n_train": 6
+ },
+ "cuad_source_code_escrow": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause require one party to deposit its source code into escrow with a third party, which can be released to the counterparty upon the occurrence of certain events (bankruptcy, insolvency, etc.)?",
+  "n_test": 118,
+  "n_train": 6
+ },
+ "cuad_termination_for_convenience": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause specify that one party can terminate this contract without cause (solely by giving a notice and allowing a waiting period to expire)?",
+  "n_test": 430,
+  "n_train": 6
+ },
+ "cuad_third_party_beneficiary": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause specify that that there a non-contracting party who is a beneficiary to some or all of the clauses in the contract and therefore can enforce its rights against a contracting party?",
+  "n_test": 68,
+  "n_train": 6
+ },
+ "cuad_uncapped_liability": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause specify that a party’s liability is uncapped upon the breach of its obligation in the contract? This also includes uncap liability for a particular type of breach such as IP infringement or breach of confidentiality obligation",
+  "n_test": 294,
+  "n_train": 6
+ },
+ "cuad_unlimited-all-you-can-eat-license": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause grant one party an “enterprise,” “all you can eat” or unlimited usage license?",
+  "n_test": 48,
+  "n_train": 6
+ },
+ "cuad_volume_restriction": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause specify a fee increase or consent requirement, etc. if one party’s use of the product/services exceeds certain threshold?",
+  "n_test": 322,
+  "n_train": 6
+ },
+ "cuad_warranty_duration": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "document_name"
+  ],
+  "instruction": "Does the clause specify a  duration of any warranty against defects or errors in technology, products, or services provided under the contract?",
+  "n_test": 320,
+  "n_train": 6
+ },
+ "definition_classification": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Identify if the sentence defines a term.",
+  "n_test": 1337,
+  "n_train": 8
+ },
+ "diversity_1": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "text",
+   "parties_are_diverse",
+   "aic_is_met"
+  ],
+  "instruction": "Diversity jurisdiction exists when there is (1) complete diversity between plaintiffs and defendants, and (2) the amount-in-controversy (AiC) is greater than $75k.",
+  "n_test": 300,
+  "n_train": 6
+ },
+ "diversity_2": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "text",
+   "parties_are_diverse",
+   "aic_is_met"
+  ],
+  "instruction": "Diversity jurisdiction exists when there is (1) complete diversity between plaintiffs and defendants, and (2) the amount-in-controversy (AiC) is greater than $75k.",
+  "n_test": 300,
+  "n_train": 6
+ },
+ "diversity_3": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "parties_are_diverse",
+   "aic_is_met"
+  ],
+  "instruction": "Diversity jurisdiction exists when there is (1) complete diversity between plaintiffs and defendants, and (2) the amount-in-controversy (AiC) is greater than $75k.",
+  "n_test": 300,
+  "n_train": 6
+ },
+ "diversity_4": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "parties_are_diverse",
+   "aic_is_met"
+  ],
+  "instruction": "Diversity jurisdiction exists when there is (1) complete diversity between plaintiffs and defendants, and (2) the amount-in-controversy (AiC) is greater than $75k.",
+  "n_test": 300,
+  "n_train": 6
+ },
+ "diversity_5": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "parties_are_diverse",
+   "aic_is_met"
+  ],
+  "instruction": "Diversity jurisdiction exists when there is (1) complete diversity between plaintiffs and defendants, and (2) the amount-in-controversy (AiC) is greater than $75k.",
+  "n_test": 300,
+  "n_train": 6
+ },
+ "diversity_6": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text",
+   "parties_are_diverse",
+   "aic_is_met"
+  ],
+  "instruction": "Diversity jurisdiction exists when there is (1) complete diversity between plaintiffs and defendants, and (2) the amount-in-controversy (AiC) is greater than $75k.",
+  "n_test": 300,
+  "n_train": 6
+ },
+ "function_of_decision_section": {
+  "kind": "choice",
+  "labels": [
+   "Procedural History",
+   "Rule",
+   "Analysis",
+   "Issue",
+   "Conclusion",
+   "Facts",
+   "Decree"
+  ],
+  "columns": [
+   "Citation",
+   "Paragraph"
+  ],
+  "instruction": "Classify the following text using the following definitions. \n\n- Facts: The paragraph describes the faction background that led up to the present lawsuit.\n- Procedural History: The paragraph describes the course of litigation that led to the current proceeding before the court.\n- Issue: The paragraph describes the legal or factual issue that must be resolved by the court.\n- Rule: The paragraph describes a rule of law relevant to resolving the issue.\n- Analysis: The paragraph analyzes the legal issue by applying the relevant legal principles to the facts of the present dispute.\n- Conclusion: The paragraph presents a conclusion of the court.\n- Decree: The paragraph constitutes a decree resolving the dispute.",
+  "n_test": 367,
+  "n_train": 7
+ },
+ "hearsay": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "text",
+   "slice"
+  ],
+  "instruction": "Hearsay is an out-of-court statement introduced to prove the truth of the matter asserted.",
+  "n_test": 94,
+  "n_train": 5
+ },
+ "insurance_policy_interpretation": {
+  "kind": "choice",
+  "labels": [
+   "C",
+   "A",
+   "B"
+  ],
+  "columns": [
+   "policy",
+   "claim"
+  ],
+  "instruction": "Read the insurance policy and the insurance claim. Answer whether the claim is covered under the policy with [A: Yes; B: No; C: It’s ambiguous]",
+  "n_test": 133,
+  "n_train": 5
+ },
+ "international_citizenship_questions": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "question"
+  ],
+  "instruction": "Answer the following questions considering the state of international law on January 1st, 2020.",
+  "n_test": 9306,
+  "n_train": 4
+ },
+ "jcrew_blocker": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "The JCrew Blocker is a provision that typically includes (1) a prohibition on the borrower from transferring IP to an unrestricted subsidiary, and (2) a requirement that the borrower obtains the consent of its agent/lenders before transferring IP to any subsidiary. Do the following provisions contain JCrew Blockers?\n\nProvision: (c) (i) The Parent Borrower may not designate a Restricted Subsidiary as an Unrestricted Subsidiary unless such Restricted Subsidiary does not own or hold an exclusive license to, any IP Rights constituting Collateral, in each case, that is material to the business of the Borrowers and its Restricted Subsidiaries, taken as a whole and (ii) the Borrowers and their respective Restricted Subsidiaries shall not be permitted to transfer to any Unrestricted Subsidiary legal or beneficial ownership of, or an exclusive license to, any IP Rights constituting Collateral, in each case, that is material to the business of the Borrowers and their respective Restricted Subsidiaries, taken as a whole;\nLabel: Yes\n\nProvision: Investments in licenses, concessions, authorizations, franchises, permits or similar arrangements in the ordinary course of business that are related to the Companys or any Restricted Subsidiarys business, provided, however, that any Investment consisting of the transfer of any material intellectual property by the Company or any of the Restricted Subsidiaries to an Unrestricted Subsidiary shall not constitute a Permitted Investment under this Agreement.\nLabel: Yes\n\nProvision: provided that, (1) immediately before and after such designation, (i) no Default or Event of Default shall have occurred and be continuing, (ii) no Unrestricted Subsidiary shall own or hold any intellectual property that is material to the business of the Borrower and its Restricted Subsidiaries, taken as a whole, (iii) no Unrestricted Subsidiary shall own any Equity Interests in Holdings, the Borrower or its Restricted Subsidiaries, and (iii) no Unrestricted Subsidiary shall hold any Indebtedness of, or any Lien on any property of Holdings, the Borrower or its Restricted Subsidiaries and (2) no Subsidiary may be designated as an Unrestricted Subsidiary if, after such designation, it would be a \"Restricted Subsidiary\" for the purpose of any Junior Financing, Permitted First Priority Refinancing Debt, Permitted Junior Priority Refinancing Debt, Permitted Unsecured Refinancing Debt, or Permitted Refinancing of any of the foregoing in excess of the Threshold Amount.  Notwithstanding the foregoing, (i) neither Holdings nor any of its Restricted Subsidiaries shall transfer any intellectual property that is material to the business of the Borrower and its Restricted Subsidiaries, taken as a whole (by way of sale, Investment, designation of an Unrestricted Subsidiary or otherwise) to any Unrestricted Subsidiary and (ii) neither the Borrower nor any Guarantor shall transfer any intellectual property that is material to the business of the Borrower and its Restricted Subsidiaries, taken as a whole (by way of sale, Investment, designation of an Unrestricted Subsidiary or otherwise) to Holdings or any Subsidiary which is not a Guarantor.  Notwithstanding the foregoing, (i) neither Holdings nor any of its Restricted Subsidiaries shall transfer any intellectual property that is material to the business of the Borrower and its Restricted Subsidiaries, taken as a whole (by way of sale, Investment, designation of an Unrestricted Subsidiary or otherwise) to any Unrestricted Subsidiary and (ii) neither the Borrower nor any Guarantor shall transfer any intellectual property that is material to the business of the Borrower and its Restricted Subsidiaries, taken as a whole (by way of sale, Investment, designation of an Unrestricted Subsidiary or otherwise) to Holdings or any Subsidiary which is not a Guarantor.\nLabel: Yes\n\nProvision: Except as would not, individually or in an aggregate, reasonably be expected to have a Material Adverse Effect, the Group Members own, or are licensed to use, all intellectual property necessary for the conduct in all material respects of the business of the Borrower and the Restricted Subsidiaries, taken as a whole, as currently conducted. As of the Closing Date, except as would not, individually or in an aggregate, reasonably be expected to have a Material Adverse Effect, the Group Members own, or are licensed to use, all intellectual property necessary for the conduct in all material respect of the business of the Borrower and the Restricted Subsidiaries, taken as a whole, as was conducted by them immediately prior to the Closing Date.\nLabel: No\n\nProvision: provided that the following shall not constitute an Asset Sale: (v) any conveyance, sale, lease, transfer or other disposition of inventory, in any case in the ordinary course of business, (w) Real Property leases and other leases, licenses, subleases or sublicenses, in each case, granted to others in the ordinary course of business and which do not materially interfere with the business of Borrower and the Restricted Subsidiaries taken as a whole, (x) any conveyance, sale, lease, transfer or other disposition of obsolete or worn out assets or assets no longer used or useful in the business of the Credit Parties, (y) licenses of Intellectual Property entered into in the ordinary course of business and (z) any conveyance, sale, transfer or other disposition of cash and/or Cash Equivalents.\nLabel: No\n\nProvision:  If, in compliance with the terms and provisions of the Credit Documents, (i) the Equity Interests of any Guarantor that is a Domestic Credit Party are directly or indirectly sold or otherwise transferred such that such Guarantor no longer constitutes a Restricted Subsidiary (a Transferred Guarantor) to a Person or Persons, none of which is Borrower or a Restricted Subsidiary, (ii) any Restricted Subsidiary is designated as or becomes an Excluded Subsidiary (provided that, notwithstanding the foregoing, a Guarantor that is a Domestic Credit Party shall not be released from its Guarantee hereunder solely due to becoming an Excluded Subsidiary of the type described in clause (d) of the definition thereof due to a disposition of less than all of the Equity Interests of such Guarantor to an Affiliate of any Credit Party) or (iii) any Restricted Subsidiary that is a Domestic Credit Party and is merged, consolidated, liquidated or dissolved in accordance with Section 10.05 and is not the surviving entity of such transaction (a Liquidated Subsidiary), such Transferred Guarantor, Excluded Subsidiary or Liquidated Subsidiary, as applicable, upon the consummation of such sale, transfer, designation or such Person becoming an Excluded Subsidiary or merger, consolidation, dissolution or liquidation, as applicable, shall (without limiting the obligations of any surviving or successor entity to any Liquidated Subsidiary to become or remain a Guarantor) be automatically released from its obligations under this Agreement (including under Section 13.03 hereof) and the other Credit Documents, and its obligations to pledge and grant any Collateral owned by it pursuant to any Security Document, and the pledge of Equity Interests in any Transferred Guarantor or any Unrestricted Subsidiary to Collateral Agent pursuant to the Security Documents shall be automatically released, and, so long as Borrower shall have provided the Agents such certifications or documents as any Agent shall reasonably request, Collateral Agent shall take such actions as are necessary to effect and evidence each release described in this Section 6.08 in accordance with the relevant provisions of the Security Documents and this Agreement.\nLabel: No\n\nProvision: \n\nLabel:",
+  "n_test": 54,
+  "n_train": 6
+ },
+ "learned_hands_benefits": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the post discuss public benefits and social services that people can get from the government, like for food, disability, old age, housing, medical help, unemployment, child care, or other social needs?",
+  "n_test": 66,
+  "n_train": 6
+ },
+ "learned_hands_business": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the post discuss issues faced by people who run small businesses or nonprofits, including around incorporation, licenses, taxes, regulations, and other concerns. It also includes options when there are disasters, bankruptcies, or other problems?",
+  "n_test": 174,
+  "n_train": 6
+ },
+ "learned_hands_consumer": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the post discuss issues people face regarding money, insurance, consumer goods and contracts, taxes, and small claims about quality of service?",
+  "n_test": 614,
+  "n_train": 6
+ },
+ "learned_hands_courts": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the post discuss the logistics of how a person can interact with a lawyer or the court system. It applies to situations about procedure, rules, how to file lawsuits, how to hire lawyers, how to represent oneself, and other practical matters about dealing with these systems?",
+  "n_test": 192,
+  "n_train": 6
+ },
+ "learned_hands_crime": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the post discuss issues in the criminal system including when people are charged with crimes, go to a criminal trial, go to prison, or are a victim of a crime?",
+  "n_test": 688,
+  "n_train": 6
+ },
+ "learned_hands_divorce": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the post discuss issues around filing for divorce, separation, or annulment, getting spousal support, splitting money and property, and following the court processes?",
+  "n_test": 150,
+  "n_train": 6
+ },
+ "learned_hands_domestic_violence": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the post discuss dealing with domestic violence and abuse, including getting protective orders, enforcing them, understanding abuse, reporting abuse, and getting resources and status if there is abuse?",
+  "n_test": 174,
+  "n_train": 6
+ },
+ "learned_hands_education": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the post discuss issues around school, including accommodations for special needs, discrimination, student debt, discipline, and other issues in education?",
+  "n_test": 56,
+  "n_train": 6
+ },
+ "learned_hands_employment": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the post discuss issues related to working at a job, including discrimination and harassment, worker's compensation, workers rights, unions, getting paid, pensions, being fired, and more?",
+  "n_test": 710,
+  "n_train": 6
+ },
+ "learned_hands_estates": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the post discuss planning for end-of-life, possible incapacitation, and other special circumstances that would prevent a person from making decisions about their own well-being, finances, and property. This includes issues around wills, powers of attorney, advance directives, trusts, guardianships, conservatorships, and other estate issues that people and families deal with?",
+  "n_test": 178,
+  "n_train": 6
+ },
+ "learned_hands_family": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the post discuss issues that arise within a family, like divorce, adoption, name change, guardianship, domestic violence, child custody, and other issues?",
+  "n_test": 2265,
+  "n_train": 6
+ },
+ "learned_hands_health": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the post discuss issues with accessing health services, paying for medical care, getting public benefits for health care, protecting one's rights in medical settings, and other issues related to health?",
+  "n_test": 226,
+  "n_train": 6
+ },
+ "learned_hands_housing": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the post discuss issues with paying your rent or mortgage, landlord-tenant issues, housing subsidies and public housing, eviction, and other problems with your apartment, mobile home, or house?",
+  "n_test": 4494,
+  "n_train": 6
+ },
+ "learned_hands_immigration": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the post discuss visas, asylum, green cards, citizenship, migrant work and benefits, and other issues faced by people who are not full citizens in the US?",
+  "n_test": 134,
+  "n_train": 6
+ },
+ "learned_hands_torts": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the post discuss problems that one person has with another person (or animal), like when there is a car accident, a dog bite, bullying or possible harassment, or neighbors treating each other badly?",
+  "n_test": 432,
+  "n_train": 6
+ },
+ "learned_hands_traffic": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the post discuss problems with traffic and parking tickets, fees, driver's licenses, and other issues experienced with the traffic system. It also concerns issues with car accidents and injuries, cars' quality, repairs, purchases, and other contracts?",
+  "n_test": 556,
+  "n_train": 6
+ },
+ "legal_reasoning_causality": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Do the following opinion excerpts rely on statistical evidence? Answer Yes or No.",
+  "n_test": 55,
+  "n_train": 4
+ },
+ "maud_accuracy_of_fundamental_target_rws_bringdown_standard": {
+  "kind": "choice",
+  "labels": [
+   "B",
+   "C",
+   "A"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Instruction: Read the segment of a merger agreement and answer the multiple-choice question by choosing the option that best characterizes the agreement.",
+  "n_test": 175,
+  "n_train": 1
+ },
+ "maud_additional_matching_rights_period_for_modifications_(cor)": {
+  "kind": "choice",
+  "labels": [
+   "A",
+   "B",
+   "E",
+   "C",
+   "D"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Instruction: Read the segment of a merger agreement and answer the multiple-choice question by choosing the option that best characterizes the agreement.",
+  "n_test": 158,
+  "n_train": 1
+ },
+ "maud_cor_standard_(intervening_event)": {
+  "kind": "choice",
+  "labels": [
+   "B",
+   "D",
+   "H",
+   "I",
+   "C",
+   "E"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Instruction: Read the segment of a merger agreement and answer the multiple-choice question by choosing the option that best characterizes the agreement.",
+  "n_test": 84,
+  "n_train": 1
+ },
+ "maud_cor_standard_(superior_offer)": {
+  "kind": "choice",
+  "labels": [
+   "B",
+   "D",
+   "H",
+   "I",
+   "J",
+   "C",
+   "G",
+   "E"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Instruction: Read the segment of a merger agreement and answer the multiple-choice question by choosing the option that best characterizes the agreement.",
+  "n_test": 100,
+  "n_train": 1
+ },
+ "maud_definition_contains_knowledge_requirement_-_answer": {
+  "kind": "choice",
+  "labels": [
+   "A",
+   "C",
+   "B",
+   "D"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Instruction: Read the segment of a merger agreement and answer the multiple-choice question by choosing the option that best characterizes the agreement.",
+  "n_test": 124,
+  "n_train": 4
+ },
+ "maud_definition_includes_asset_deals": {
+  "kind": "choice",
+  "labels": [
+   "C",
+   "B",
+   "A",
+   "D"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Instruction: Read the segment of a merger agreement and answer the multiple-choice question by choosing the option that best characterizes the agreement.",
+  "n_test": 141,
+  "n_train": 4
+ },
+ "maud_definition_includes_stock_deals": {
+  "kind": "choice",
+  "labels": [
+   "C",
+   "B",
+   "A",
+   "D"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Instruction: Read the segment of a merger agreement and answer the multiple-choice question by choosing the option that best characterizes the agreement.",
+  "n_test": 142,
+  "n_train": 4
+ },
+ "maud_fiduciary_exception__board_determination_standard": {
+  "kind": "choice",
+  "labels": [
+   "H",
+   "B",
+   "D",
+   "I",
+   "E",
+   "C",
+   "F",
+   "G"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Instruction: Read the segment of a merger agreement and answer the multiple-choice question by choosing the option that best characterizes the agreement.",
+  "n_test": 179,
+  "n_train": 1
+ },
+ "maud_fls_(mae)_standard": {
+  "kind": "choice",
+  "labels": [
+   "C",
+   "B",
+   "E",
+   "A"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Instruction: Read the segment of a merger agreement and answer the multiple-choice question by choosing the option that best characterizes the agreement.",
+  "n_test": 77,
+  "n_train": 1
+ },
+ "maud_initial_matching_rights_period_(cor)": {
+  "kind": "choice",
+  "labels": [
+   "D",
+   "B",
+   "F",
+   "E",
+   "C"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Instruction: Read the segment of a merger agreement and answer the multiple-choice question by choosing the option that best characterizes the agreement.",
+  "n_test": 158,
+  "n_train": 1
+ },
+ "maud_initial_matching_rights_period_(ftr)": {
+  "kind": "choice",
+  "labels": [
+   "D",
+   "F",
+   "B",
+   "E",
+   "C"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Instruction: Read the segment of a merger agreement and answer the multiple-choice question by choosing the option that best characterizes the agreement.",
+  "n_test": 132,
+  "n_train": 1
+ },
+ "maud_ordinary_course_efforts_standard": {
+  "kind": "choice",
+  "labels": [
+   "B",
+   "A",
+   "C"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Instruction: Read the segment of a merger agreement and answer the multiple-choice question by choosing the option that best characterizes the agreement.",
+  "n_test": 181,
+  "n_train": 1
+ },
+ "maud_tail_period_length": {
+  "kind": "choice",
+  "labels": [
+   "C",
+   "E",
+   "D",
+   "A"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Instruction: Read the segment of a merger agreement and answer the multiple-choice question by choosing the option that best characterizes the agreement.",
+  "n_test": 179,
+  "n_train": 1
+ },
+ "maud_type_of_consideration": {
+  "kind": "choice",
+  "labels": [
+   "A",
+   "B",
+   "C",
+   "D"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Instruction: Read the segment of a merger agreement and answer the multiple-choice question by choosing the option that best characterizes the agreement.",
+  "n_test": 172,
+  "n_train": 1
+ },
+ "nys_judicial_ethics": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "question",
+   "year"
+  ],
+  "instruction": "Imagine your are the New York State Unified Court System Advisory Committee on Judicial Ethics. You've received the following question(s). Answer them as either \"Yes\" or \"No\".",
+  "n_test": 292,
+  "n_train": 8
+ },
+ "opp115_data_retention": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the clause describe how long user information is stored?",
+  "n_test": 304,
+  "n_train": 8
+ },
+ "opp115_data_security": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the clause describe how user information is protected?",
+  "n_test": 738,
+  "n_train": 8
+ },
+ "opp115_do_not_track": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the clause describe if and how Do Not Track signals for online tracking and advertising are honored?",
+  "n_test": 56,
+  "n_train": 8
+ },
+ "opp115_first_party_collection_use": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the clause describe how and why a service provider collects user information?",
+  "n_test": 3034,
+  "n_train": 8
+ },
+ "opp115_international_and_specific_audiences": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the clause describe practices that pertain only to a specific group of users (e.g., children, Europeans, or California residents)?",
+  "n_test": 694,
+  "n_train": 8
+ },
+ "opp115_policy_change": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the clause describe if and how users will be informed about changes to the privacy policy?",
+  "n_test": 362,
+  "n_train": 8
+ },
+ "opp115_third_party_sharing_collection": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the clause describe how user information may be shared with or collected by third parties?",
+  "n_test": 2364,
+  "n_train": 8
+ },
+ "opp115_user_access,_edit_and_deletion": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the clause describe if and how users may access, edit, or delete their information?",
+  "n_test": 452,
+  "n_train": 8
+ },
+ "opp115_user_choice_control": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the clause describe the choices and control options available to users?",
+  "n_test": 1254,
+  "n_train": 8
+ },
+ "oral_argument_question_purpose": {
+  "kind": "choice",
+  "labels": [
+   "Clarification",
+   "Implications",
+   "Background",
+   "Criticism",
+   "Humor",
+   "Communicate",
+   "Support"
+  ],
+  "columns": [
+   "Docket No.",
+   "question"
+  ],
+  "instruction": "Classify the function that the question serves. Options: Background, Clarification, Communicate, Criticism, Humor, Implications, Support",
+  "n_test": 312,
+  "n_train": 7
+ },
+ "overruling": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Does the sentence contain language overruling a previous case?",
+  "n_test": 2394,
+  "n_train": 6
+ },
+ "personal_jurisdiction": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "text",
+   "slice"
+  ],
+  "instruction": "There is personal jurisdiction over a defendant in the state where the defendant is domiciled, or when (1) the defendant has sufficient contacts with the state, such that they have availed itself of the privileges of the state and (2) the claim arises out of the nexus of the defendant's contacts with the state.",
+  "n_test": 50,
+  "n_train": 4
+ },
+ "proa": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "A private right of action is when a regular person, a private citizen, is legally entitled to enforce their rights under a given statute. Does the clause specify a private right of action?",
+  "n_test": 95,
+  "n_train": 5
+ },
+ "scalr": {
+  "kind": "choice",
+  "labels": [
+   "0",
+   "3",
+   "1",
+   "2",
+   "4"
+  ],
+  "columns": [
+   "question",
+   "choice_0",
+   "choice_1",
+   "choice_2",
+   "choice_3",
+   "choice_4"
+  ],
+  "instruction": "Given the following question presented in a court case, select the most relevant holding:",
+  "n_test": 571,
+  "n_train": 0
+ },
+ "telemarketing_sales_rule": {
+  "kind": "noul",
+  "labels": [
+   "Yes",
+   "No"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "The Telemarketing Sales Rule is provided by 16 C.F.R. § 310.3(a)(1) and 16 C.F.R. § 310.3(a)(2).",
+  "n_test": 47,
+  "n_train": 4
+ },
+ "textualism_tool_dictionaries": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Label \"Yes\" if the paragraph interprets a statue using a dictionary definition for terms in the statute. The paragraph must reference that it is using a dictionary, or discuss the logic behind using a dictionary. Otherwise label \"No\".",
+  "n_test": 107,
+  "n_train": 4
+ },
+ "textualism_tool_plain": {
+  "kind": "noul",
+  "labels": [
+   "No",
+   "Yes"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Label \"Yes\" if the paragraph interprets a statue using the plain or ordinary meaning of the terms in the statute. The paragraph must reference that it is using plain meaning, or discuss the logic behind using plain meaning. Otherwise label \"No\".",
+  "n_test": 165,
+  "n_train": 4
+ },
+ "unfair_tos": {
+  "kind": "choice",
+  "labels": [
+   "Other",
+   "Limitation of liability",
+   "Unilateral termination",
+   "Unilateral change",
+   "Contract by using",
+   "Jurisdiction",
+   "Choice of law",
+   "Content removal",
+   "Arbitration"
+  ],
+  "columns": [
+   "text"
+  ],
+  "instruction": "Classify each clause by type.\nOptions: Arbitration, Unilateral change, Content removal, Jurisdiction, Choice of law, Limitation of liability, Unilateral termination, Contract by using, Other",
+  "n_test": 3813,
+  "n_train": 9
+ }
+}
