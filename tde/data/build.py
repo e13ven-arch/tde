@@ -348,6 +348,7 @@ def adapter_hotpot(spec: DatasetSpec, max_rows: int | None, seed: int) -> list[D
         oth_p = [p for p in paras if p[0] not in sup]
         rng.shuffle(oth_p)
         chosen = sup_p + oth_p[: rng.randint(1, 3)]
+        rng.shuffle(chosen)  # supporting paragraphs first leaked the answer position (Exp 005: 96% on hotpot, no transfer)
         state = "\n\n".join(f"{t}: {txt}" for t, txt in chosen)
         q = row["question"].strip()
         ans = row["answer"].strip()

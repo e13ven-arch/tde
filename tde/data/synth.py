@@ -234,7 +234,7 @@ CATS = ["billing", "outage", "access", "bug", "feature", "refund-policy-question
 
 
 def gen_multihop(rng: random.Random, idx: int) -> World:
-    n_dept = rng.randint(3, 4); n_users = rng.randint(6, 9); n_tickets = rng.randint(4, 7)
+    n_dept = rng.randint(3, 4); n_users = rng.randint(5, 7); n_tickets = rng.randint(3, 5)  # keeps compact JSON under ~400 tokens
     depts = rng.sample(DEPTS, n_dept)
     names = set()
     users = []
@@ -264,7 +264,7 @@ def gen_multihop(rng: random.Random, idx: int) -> World:
     uid = {u["id"]: u for u in users}
     world = {"users": users, "departments": dept_recs, "tickets": tickets}
     if rng.random() < 0.7:
-        state = json.dumps(world, ensure_ascii=False, indent=None if rng.random() < 0.5 else 1)
+        state = json.dumps(world, ensure_ascii=False, separators=(",", ":"))  # compact: indented JSON blew past the state budget
     else:
         lines = ["Users:"] + [f"- {u['id']} {u['name']} ({u['role']}, {u['department']}, clearance {u['clearance']})" for u in users]
         lines += ["Departments:"] + [f"- {d['id']} {d['name']}: head {d['head']}, budget {d['budget_k']}k" for d in dept_recs]
