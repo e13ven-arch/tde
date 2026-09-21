@@ -56,10 +56,15 @@ def confidence_bce(conf_logit: torch.Tensor, logits: torch.Tensor, target: torch
 
 
 def total_loss(out: dict, batch: dict, *, w_ce: float = 1.0, w_brier: float = 0.0, w_rps: float = 0.0,
-               w_perm: float = 0.0, out_perm: dict | None = None, perm: torch.Tensor | None = None, w_conf: float = 0.0) -> tuple[torch.Tensor, dict]:
+               w_perm: float = 0.0, out_perm: dict | None = None, perm: torch.Tensor | None = None, w_conf: float = 0.0,
+               w_pg: float = 0.0, w_correct_pg: float = 0.0, pg_samples: int = 32) -> tuple[torch.Tensor, dict]:
     logits, target, mask = out["logits"], batch["target"], batch["cand_mask"]
     parts = {}
     loss = logits.new_zeros(())
+    if w_pg:
+        parts["paired_pg"] = paired_brier_pg(logits, target, mask, pg_samples); loss = loss + w_pg * parts["paired_pg"]
+    if w_correct_pg:
+        parts["correct_pg"] = correctness_pg(logits, target, mask, pg_samples); loss = loss + w_correct_pg * parts["correct_pg"]
     if w_ce:
         parts["ce"] = soft_cross_entropy(logits, target, mask); loss = loss + w_ce * parts["ce"]
     if w_brier:
@@ -71,3 +76,58 @@ def total_loss(out: dict, batch: dict, *, w_ce: float = 1.0, w_brier: float = 0.
     if w_conf and "conf_logit" in out:
         parts["conf"] = confidence_bce(out["conf_logit"], logits.detach(), target, mask); loss = loss + w_conf * parts["conf"]
     return loss, {k: float(v.detach()) for k, v in parts.items()}
+
+
+# --------------------------------------------------------------------------
+# RLCD-style control arms: policy-gradient on a sampled reward.
+# `paired_brier_pg` uses a strictly proper reward whose expectation is
+# ||q||^2 - ||p - q||^2 (the negative Brier score up to a constant), so its
+# expected gradient equals the gradient of the direct Brier loss (see
+# tests/test_losses_pg.py). `correctness_pg` rewards 1[A = Y] only, which is
+# linear in p and therefore NOT proper: it drives p towards a one-hot on the
+# majority label instead of recovering the target distribution.
+# --------------------------------------------------------------------------
+
+def _sample_labels(target: torch.Tensor, cand_mask: torch.Tensor) -> torch.Tensor:
+    """Draw one observed outcome Y per row from the (soft or hard) target distribution."""
+    t = target.masked_fill(~cand_mask, 0.0).clamp_min(0.0)
+    t = t / t.sum(-1, keepdim=True).clamp_min(1e-9)
+    return torch.multinomial(t, 1).squeeze(-1)
+
+
+def paired_brier_pg(logits: torch.Tensor, target: torch.Tensor, cand_mask: torch.Tensor, n_samples: int = 32) -> torch.Tensor:
+    """Score-function surrogate whose expected gradient is grad ||p - q||^2 (RLCD-style, proper reward).
+
+    M >= 2 predictions A_i ~ p (with replacement); reward
+        R = (2/M) sum_i 1[A_i = Y] - sum_k c_k (c_k - 1) / (M (M - 1)),
+    per-sample reward r_i = (2/M) 1[A_i = Y] - 2 (c_{A_i} - 1) / (M (M - 1)),
+    detached conditional baseline b_i = (2/M) p_Y - 2 sum_{j != i} p_{A_j} / (M (M - 1)).
+    """
+    M = max(2, int(n_samples))
+    lp = log_probs(logits, cand_mask)
+    p = lp.exp().detach()
+    B, K = p.shape
+    Y = _sample_labels(target, cand_mask)                                   # [B]
+    A = torch.multinomial(p, M, replacement=True)                            # [B, M]
+    counts = torch.zeros_like(p).scatter_add_(1, A, torch.ones_like(A, dtype=p.dtype))  # [B, K]
+    c_A = torch.gather(counts, 1, A)                                         # [B, M]
+    hit = (A == Y.unsqueeze(1)).to(p.dtype)
+    r = (2.0 / M) * hit - 2.0 * (c_A - 1.0) / (M * (M - 1.0))
+    p_A = torch.gather(p, 1, A)                                              # [B, M]
+    p_Y = torch.gather(p, 1, Y.unsqueeze(1))                                 # [B, 1]
+    b = (2.0 / M) * p_Y - 2.0 * (p_A.sum(1, keepdim=True) - p_A) / (M * (M - 1.0))
+    lp_A = torch.gather(lp, 1, A)
+    return -((r - b).detach() * lp_A).sum(1).mean()
+
+
+def correctness_pg(logits: torch.Tensor, target: torch.Tensor, cand_mask: torch.Tensor, n_samples: int = 32) -> torch.Tensor:
+    """REINFORCE with reward 1[A = Y] and a detached p_Y baseline. Improper: not a calibration objective."""
+    M = max(1, int(n_samples))
+    lp = log_probs(logits, cand_mask)
+    p = lp.exp().detach()
+    Y = _sample_labels(target, cand_mask)
+    A = torch.multinomial(p, M, replacement=True)
+    hit = (A == Y.unsqueeze(1)).to(p.dtype)
+    b = torch.gather(p, 1, Y.unsqueeze(1))
+    lp_A = torch.gather(lp, 1, A)
+    return -((hit - b).detach() * lp_A).mean(1).mean()

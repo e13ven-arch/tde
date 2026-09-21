@@ -51,6 +51,9 @@ class TrainConfig:
     w_rps: float = 0.0
     w_perm: float = 0.0
     w_conf: float = 0.0
+    w_pg: float = 0.0                 # RLCD-style paired proper-reward policy gradient (control arm)
+    w_correct_pg: float = 0.0         # improper correctness-only REINFORCE (negative control)
+    pg_samples: int = 32
     use_confidence_head: bool = False
     branch_layers: int = 3
     branch_through_backbone: bool = True
@@ -202,7 +205,8 @@ def train(cfg: TrainConfig) -> dict:
                     out_perm = model(pbatch)
                     perm = perm.to(device)
                 loss, parts = total_loss(out, batch, w_ce=cfg.w_ce, w_brier=cfg.w_brier, w_rps=cfg.w_rps, w_perm=cfg.w_perm,
-                                         out_perm=out_perm, perm=perm, w_conf=cfg.w_conf)
+                                         out_perm=out_perm, perm=perm, w_conf=cfg.w_conf,
+                                         w_pg=cfg.w_pg, w_correct_pg=cfg.w_correct_pg, pg_samples=cfg.pg_samples)
             (loss / cfg.grad_accum).backward()
             for k, v in parts.items():
                 running[k] = running.get(k, 0.0) + v

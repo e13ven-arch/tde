@@ -102,7 +102,8 @@ def evaluate_run(run_dir: str | Path, data_dir: str | Path, split: str = "test",
                  batch_size: int = 32, controls: bool = True, fit_temperature: bool = True, control_limit: int = 2000) -> dict:
     dtok, model, cfg, device = load_checkpoint(run_dir)
     data_dir = Path(data_dir)
-    examples = load_jsonl(data_dir / f"{split}.jsonl", limit)
+    split_path = Path(split) if split.endswith(".jsonl") else data_dir / f"{split}.jsonl"  # split name or a jsonl path
+    examples = load_jsonl(split_path, limit)
     logits = predict(model, dtok, examples, device, batch_size)
     report: dict = {"run": str(run_dir), "split": split, "n": len(examples), "readout": cfg["readout"], "backbone": cfg["backbone"]}
     temp = None

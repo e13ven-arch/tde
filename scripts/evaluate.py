@@ -25,7 +25,7 @@ def main() -> None:
     args = ap.parse_args()
     rep = evaluate_run(args.run, args.data_dir, args.split, args.limit, args.batch_size,
                        controls=not args.no_controls, fit_temperature=not args.no_temperature)
-    out = args.out or str(Path(args.run) / f"eval_{args.split}.json")
+    out = args.out or str(Path(args.run) / f"eval_{Path(args.split).stem if args.split.endswith(chr(46)+chr(106)+chr(115)+chr(111)+chr(110)+chr(108)) else args.split}.json")
     save_report(rep, out)
     brief = {k: {m: round(v, 4) for m, v in s.items() if m in ("n", "accuracy", "brier", "nll", "ece", "ece_noise_floor", "aurc")} for k, s in rep["raw"].items()}
     print(json.dumps({"raw": brief, "controls": rep.get("controls"), "saved": out}, indent=2))
