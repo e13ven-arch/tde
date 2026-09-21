@@ -240,7 +240,7 @@ def train(cfg: TrainConfig) -> dict:
     return {"steps": step, "best_nll": best_nll, "out_dir": str(out_dir), **summary}
 
 
-def load_checkpoint(out_dir: str | Path, device: torch.device | None = None):
+def load_checkpoint(out_dir: str | Path, device: torch.device | None = None, max_total: int | None = None):
     """Rebuild tokenizer + model from a run directory."""
     out_dir = Path(out_dir)
     cfg = json.loads((out_dir / "config.json").read_text())
@@ -255,6 +255,8 @@ def load_checkpoint(out_dir: str | Path, device: torch.device | None = None):
         from tde.model.encoding import DecisionTokenizer
         tok = AutoTokenizer.from_pretrained(out_dir / "tokenizer")
         dtok = DecisionTokenizer(tok, max_state_tokens=cfg.get("max_state_tokens", 448), marker=cfg.get("marker", "new"))
+    if max_total:
+        dtok.max_total = max_total  # inference-time sequence budget (ModernBERT supports 8k); training used 1024
     apply_finetune_mode(model, cfg.get("finetune", "full"))
     state = torch.load(out_dir / "best.pt", map_location="cpu")
     model.load_state_dict(state, strict=False)

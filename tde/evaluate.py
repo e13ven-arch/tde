@@ -99,13 +99,14 @@ def control_block(model, dtok, examples: list[DecisionExample], device, batch_si
 
 
 def evaluate_run(run_dir: str | Path, data_dir: str | Path, split: str = "test", limit: int | None = None,
-                 batch_size: int = 32, controls: bool = True, fit_temperature: bool = True, control_limit: int = 2000) -> dict:
-    dtok, model, cfg, device = load_checkpoint(run_dir)
+                 batch_size: int = 32, controls: bool = True, fit_temperature: bool = True, control_limit: int = 2000,
+                 max_total: int | None = None) -> dict:
+    dtok, model, cfg, device = load_checkpoint(run_dir, max_total=max_total)
     data_dir = Path(data_dir)
     split_path = Path(split) if split.endswith(".jsonl") else data_dir / f"{split}.jsonl"  # split name or a jsonl path
     examples = load_jsonl(split_path, limit)
     logits = predict(model, dtok, examples, device, batch_size)
-    report: dict = {"run": str(run_dir), "split": split, "n": len(examples), "readout": cfg["readout"], "backbone": cfg["backbone"]}
+    report: dict = {"run": str(run_dir), "split": split, "n": len(examples), "readout": cfg["readout"], "backbone": cfg["backbone"], "max_total": dtok.max_total}
     temp = None
     if fit_temperature and (data_dir / "calibration.jsonl").exists() and split != "calibration":
         cal = load_jsonl(data_dir / "calibration.jsonl", limit)
