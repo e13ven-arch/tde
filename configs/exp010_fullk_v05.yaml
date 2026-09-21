@@ -1,0 +1,27 @@
+# Exp 010 — Exp 009 on v0.5: intent datasets rendered with the full label set 30% of the time (p_full_k).
+# Same model and losses as Stage 1 joint v2; the only change is the training mixture. Compare on JevBench public tiers,
+# typed-decisions test (specialist row), LegalBench held-out tasks, full-K sets and the v0.1 test set (regression check).
+backbone: checkpoints/gliclass-modern-base-encoder
+readout: joint
+finetune: full
+marker: mask
+pool: marker+span
+data_dir: data/v0.5
+out_dir: runs/exp010_fullk_v05
+per_dataset_cap: 15000
+group_by_state: true
+eval_limit: 3000
+epochs: 1
+batch_size: 4
+grad_accum: 8
+lr_backbone: 2.0e-5
+lr_head: 1.0e-4
+layer_decay: 0.9
+warmup_ratio: 0.05
+w_ce: 1.0
+w_rps: 1.0
+w_perm: 0.3
+max_state_tokens: 1024   # 66% of synth_multihop and 56% of hotpot states exceed 448 tokens (measured 2026-09-22)
+eval_every: 500
+seed: 0
+notes: "Pre-registered primary endpoint: full-label-set accuracy (eval_only/full_k.test) vs Exp 009; secondary JevBench hard tier (regression check).

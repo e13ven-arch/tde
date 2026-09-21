@@ -1,0 +1,2 @@
+# config|readout|out_dir|extra
+configs/exp010_fullk_v05.yaml|joint|runs/exp010_fullk_v05|
