@@ -129,7 +129,7 @@ def predict(model, dtok, examples: list[DecisionExample], device: torch.device, 
 
 @torch.no_grad()
 def predict_chunked(model, dtok, examples: list[DecisionExample], device: torch.device, chunk_k: int = 12,
-                    batch_size: int = 32, bf16: bool = True) -> list[np.ndarray]:
+                    batch_size: int = 32, bf16: bool = True, tournament: bool = True) -> list[np.ndarray]:
     """Score candidate sets larger than `chunk_k` in chunks (state repeated), concatenating chunk logits.
 
     Approximates a pointwise readout at inference so a model trained with K <= chunk_k can be queried with
@@ -147,10 +147,36 @@ def predict_chunked(model, dtok, examples: list[DecisionExample], device: torch.
                 pieces.append((i, idx, e.with_candidate_order(idx)))
     logits = predict(model, dtok, [p[2] for p in pieces], device, batch_size, bf16)
     out: list[np.ndarray] = [np.full(e.k, np.nan) for e in examples]
+    winners: dict[int, list[tuple[int, float]]] = {}  # example -> [(candidate, round-1 logit)] per chunk
     for (i, idx, _), z in zip(pieces, logits):
         for j, c in enumerate(idx):
             if np.isnan(out[i][c]):
                 out[i][c] = z[j]
+        if examples[i].k > chunk_k:
+            w = int(np.argmax(z[: len(idx)]))
+            winners.setdefault(i, []).append((idx[w], float(z[w])))
+    if tournament:
+        # round 2: chunk winners compete listwise; each chunk's logits are shifted so its winner takes its round-2 logit
+        finals = []
+        for i, ws in winners.items():
+            seen = {}
+            for c, z1 in ws:
+                seen.setdefault(c, z1)
+            cands = list(seen)
+            if len(cands) >= 2:
+                finals.append((i, cands, [seen[c] for c in cands], examples[i].with_candidate_order(cands)))
+        if finals:
+            z2s = predict(model, dtok, [f[3] for f in finals], device, batch_size, bf16)
+            for (i, cands, z1s, _), z2 in zip(finals, z2s):
+                # every candidate belongs to exactly one chunk; find its chunk winner and apply that shift
+                chunk_of = {}
+                for (ii, idx, _) in pieces:
+                    if ii == i:
+                        w = max(idx, key=lambda c: out[i][c])
+                        for c in idx:
+                            chunk_of[c] = w
+                shift = {w: z2[k] - z1 for k, (w, z1) in enumerate(zip(cands, z1s))}
+                out[i] = np.array([out[i][c] + shift.get(chunk_of[c], 0.0) for c in range(examples[i].k)])
     return out
 
 
