@@ -22,16 +22,17 @@ class DatasetSpec:
     hf_splits: tuple[str, ...] = ("train",)
     notes: str = ""
     max_rows: int | None = None  # cap per dataset for stage 0 builds
+    k_max: int = 12  # largest candidate subset rendered for choice questions (train); full label set is a separate eval group
 
 
 REGISTRY: dict[str, DatasetSpec] = {
     "banking77": DatasetSpec(
-        name="banking77", hf_id="mteb/banking77", hf_config=None, license="CC-BY-4.0",
+        name="banking77", k_max=40, hf_id="mteb/banking77", hf_config=None, license="CC-BY-4.0",
         usage="train", adapter="single_label", stage=0, hf_splits=("train", "test"),
         notes="77 banking intents; label names are snake_case and are rewritten to natural text.",
     ),
     "clinc150": DatasetSpec(
-        name="clinc150", hf_id="clinc/clinc_oos", hf_config="plus", license="CC-BY-3.0",
+        name="clinc150", k_max=40, hf_id="clinc/clinc_oos", hf_config="plus", license="CC-BY-3.0",
         usage="train", adapter="clinc", stage=0, hf_splits=("train", "validation", "test"),
         notes="150 intents + out-of-scope; OOS rows become noul 'is this in scope?' negatives.",
     ),
@@ -51,7 +52,7 @@ REGISTRY: dict[str, DatasetSpec] = {
         notes="5 ordered sentiment levels -> score primitive.",
     ),
     "go_emotions": DatasetSpec(
-        name="go_emotions", hf_id="google-research-datasets/go_emotions", hf_config="raw", license="Apache-2.0",
+        name="go_emotions", k_max=28, hf_id="google-research-datasets/go_emotions", hf_config="raw", license="Apache-2.0",
         usage="train", adapter="go_emotions_raw", stage=0, hf_splits=("train",), max_rows=60000,
         notes="Raw per-rater annotations aggregated into a vote distribution over 28 labels (human soft labels).",
     ),

@@ -141,7 +141,7 @@ def adapter_single_label(spec: DatasetSpec, max_rows: int | None, seed: int) -> 
     def read(row):
         return row["text"], int(row["label"]), None
 
-    return _render_rows_classification(spec=spec, rows=rows, read=read, label_names=names, label_descriptions=None, seed=seed)
+    return _render_rows_classification(spec=spec, rows=rows, read=read, label_names=names, label_descriptions=None, seed=seed, k_max=spec.k_max)
 
 
 def adapter_clinc(spec: DatasetSpec, max_rows: int | None, seed: int) -> list[DecisionExample]:
@@ -158,7 +158,7 @@ def adapter_clinc(spec: DatasetSpec, max_rows: int | None, seed: int) -> list[De
             return None
         return row["text"], remap[int(row["intent"])], None
 
-    out = _render_rows_classification(spec=spec, rows=rows, read=read, label_names=names, label_descriptions=None, seed=seed)
+    out = _render_rows_classification(spec=spec, rows=rows, read=read, label_names=names, label_descriptions=None, seed=seed, k_max=spec.k_max)
     # scope noul: balanced yes (in-scope) / no (oos)
     scope_t = next(t for t in spec_templates(spec.name) if t.kind == "scope_noul")
     oos_rows = [(k, r) for k, r in rows if int(r["intent"]) == oos_idx]
