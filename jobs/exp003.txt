@@ -1,8 +1,6 @@
 # Exp 003 calibration / objective arms (Stage 0 size, joint v2). Baseline soft-CE = runs/exp001_joint_full (v2).
 # config|readout|out_dir|extra
 configs/exp001_readout.yaml|joint|runs/exp003_ce_brier|--w_brier 1.0
-configs/exp001_readout.yaml|joint|runs/exp003_paired_pg|--w_ce 0 --w_pg 1.0 --pg_samples 32
-configs/exp001_readout.yaml|joint|runs/exp003_correct_pg|--w_ce 0 --w_correct_pg 1.0 --pg_samples 32
 configs/exp001_readout.yaml|joint|runs/exp003_brier_only|--w_ce 0 --w_brier 1.0
 configs/exp001_readout.yaml|joint|runs/exp003_ce_confhead|--use_confidence_head true --w_conf 0.2
 configs/exp001_readout.yaml|joint|runs/exp003_ce_noperm|--w_perm 0

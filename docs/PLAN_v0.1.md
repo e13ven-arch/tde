@@ -168,7 +168,7 @@ runs/           checkpoint 与日志（git 忽略）
 | JevBench v1.2.7（534 题，经其 adapter 提交） | 超过 Laya 421M，逼近 Jev | Laya 70.1；SemIf 74.7；Jev 75.4 |
 | 意图路由全标签集（banking77 77 类、clinc150 150 类，训练只见 ≤12 候选子集） | 5% 错误率下自动执行 ≥90%，并通过相干性与换序不变性测试 | 本项目 Exp 001 子集设置下 93%～95% |
 
-随开源一起发布的实验结论：(a) 监督 proper score 训练不弱于 RLCD 式 proper-reward 策略梯度（同最优点，方差更小；含 correctness-only REINFORCE 负对照）；(b) 读出位置（[MASK] + span）带来的收益及 2×2 消融；(c) 校准来自目标函数，各桶温度 ≈1。
+随开源一起发布的实验结论：(a) 读出位置（[MASK] + span）带来的收益及 2×2 消融；(b) 校准来自目标函数，各桶温度 ≈1。RLCD 未公开，本项目不对其做任何声明；社区复现的 proper-reward 策略梯度 arm（tde/losses.py 中 paired_brier_pg / correctness_pg）仅作为可选附录，说明公开的 RL 式复现在期望上等于直接监督。
 
 措辞约束：本项目是基于公开资料的数学推导与小模型实验得到的近似设计，不探测、不调用、不蒸馏 Jev；发布时描述为「复现同类接口与行为的开放设计，在公开基准上用第三方数据对比」。
 
