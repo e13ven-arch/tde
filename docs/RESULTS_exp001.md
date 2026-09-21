@@ -43,3 +43,23 @@ branch v1（分支不过 backbone）在校准集上停在 42%，等于「无 sta
 ## Stage 1 改动（configs/exp001_stage1.yaml）
 
 - 2 个 epoch，每数据集 2 万条；perm-KL 0.3；RPS 1.0；branch 若 v2 仍明显落后则改用 backbone 末 2 层初始化交叉注意力层。
+
+
+## Stage 1（joint v2，每数据集 2 万、2 epoch、perm-KL 0.3、RPS 1.0、按 state 分组）
+
+最优 checkpoint 为第 6,500 步（校准集 NLL 0.282）；测试集 6,000 条。
+
+| 切片 | Stage 0（acc / NLL / cov@5%） | Stage 1 |
+|---|---|---|
+| all | 0.862 / 0.341 / 0.71 | 0.887 / 0.288 / 0.81 |
+| dataset=banking77 | 0.910 / 0.243 / 0.93 | 0.967 / 0.128 / 1.00 |
+| dataset=clinc150 | 0.927 / 0.172 / 0.95 | 0.959 / 0.100 / 1.00 |
+| dataset=ag_news | 0.913 / 0.254 / 0.89 | 0.923 / 0.229 / 0.94 |
+| dataset=snli | 0.859 / 0.352 / 0.64 | 0.888 / 0.295 / 0.75 |
+| dataset=go_emotions | 0.742 / 0.603 / 0.32 | 0.761 / 0.549 / 0.35 |
+| dataset=boolq | 0.733 / 0.559 / 0.24 | 0.751 / 0.527 / 0.19 |
+| dataset=sst5 | 0.616 / 0.782 / 0.17 | 0.643 / 0.762 / 0.15 |
+| primitive=score | 0.521 / 0.969 / 0.04 | 0.538 / 0.977 / 0.03 |
+| templates=held_out_templates | 0.883 / 0.292 / 0.80 | 0.904 / 0.239 / 0.88 |
+
+控制块（Stage 1）：正常 0.893，无 state 0.422，打乱 state 0.414，换序一致率 0.986。第二个 epoch 期间校准集 ECE 在 0.017～0.038 间震荡、mean_conf 高于准确率，最终按 NLL 选点后测试集 ECE 0.014（下限 0.008）。JevBench hard 层 26.1% → 28.8%（见 RESULTS_jevbench.md）。
