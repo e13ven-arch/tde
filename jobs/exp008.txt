@@ -1,0 +1,2 @@
+# config|readout|out_dir|extra
+configs/exp008_gliclass_init.yaml|joint|runs/exp008_gliclass_init|
