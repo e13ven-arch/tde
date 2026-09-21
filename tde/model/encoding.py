@@ -40,13 +40,17 @@ class DecisionTokenizer:
         if marker == "mask" and tokenizer.mask_token_id is not None:
             self.added_tokens = 0
             self.opt_id = self.decide_id = tokenizer.mask_token_id
+        elif marker == "eos" and tokenizer.eos_token_id is not None:
+            self.added_tokens = 0
+            self.opt_id = self.decide_id = tokenizer.eos_token_id
         else:
             self.added_tokens = tokenizer.add_special_tokens({"additional_special_tokens": [OPT_TOKEN, DECIDE_TOKEN]})
             self.opt_id = tokenizer.convert_tokens_to_ids(OPT_TOKEN)
             self.decide_id = tokenizer.convert_tokens_to_ids(DECIDE_TOKEN)
-        self.cls_id = tokenizer.cls_token_id if tokenizer.cls_token_id is not None else tokenizer.bos_token_id
+        self.cls_id = tokenizer.cls_token_id if tokenizer.cls_token_id is not None else tokenizer.bos_token_id  # may be None (Qwen)
         self.sep_id = tokenizer.sep_token_id if tokenizer.sep_token_id is not None else tokenizer.eos_token_id
         self.pad_id = tokenizer.pad_token_id if tokenizer.pad_token_id is not None else (tokenizer.eos_token_id or 0)
+        self.newline_ids = tokenizer("\n", add_special_tokens=False)["input_ids"]
         self.max_state = max_state_tokens
         self.max_question = max_question_tokens
         self.max_candidate = max_candidate_tokens
@@ -58,13 +62,16 @@ class DecisionTokenizer:
         return ids[:limit]
 
     def _wrap(self, ids: list[int]) -> list[int]:
-        out = []
-        if self.cls_id is not None:
-            out.append(self.cls_id)
-        out += ids
-        if self.sep_id is not None:
-            out.append(self.sep_id)
-        return out
+        return self._cls() + ids + self._sep()
+
+    def _cls(self) -> list[int]:
+        return [self.cls_id] if self.cls_id is not None else []
+
+    def _sep(self) -> list[int]:
+        """Segment separator: [SEP] for encoders; a newline for decoders whose only special token is eos (used as marker)."""
+        if self.sep_id is not None and self.sep_id != self.opt_id:
+            return [self.sep_id]
+        return list(self.newline_ids)
 
     def _candidate_block(self, ex: DecisionExample) -> tuple[list[int], list[int], int, list[int], list[tuple[int, int]]]:
         ids, opt_pos, level_index, spans = [], [], [], []
@@ -87,20 +94,20 @@ class DecisionTokenizer:
             # [CLS] state [SEP] question [SEP] [OPT] c1 ... [DECIDE] [SEP]
             budget = self.max_total - (len(q_ids) + len(cand_ids) + 4)
             s_ids = self._ids(ex.state, max(8, min(self.max_state, budget)))
-            prefix = [self.cls_id] + s_ids + [self.sep_id] + q_ids + [self.sep_id]
-            input_ids = prefix + cand_ids + [self.sep_id]
+            prefix = self._cls() + s_ids + self._sep() + q_ids + self._sep()
+            input_ids = prefix + cand_ids + self._sep()
             offset = len(prefix)
             return EncodedExample(input_ids, [p + offset for p in opt_pos], decide_pos + offset, [], [], level_index, ex.target, ex.primitive,
                                   spans=[(a + offset, b + offset) for a, b in spans])
         if mode == "branch":
             state_ids = self._wrap(self._ids(ex.state, self.max_state))
-            branch = [self.cls_id] + q_ids + [self.sep_id] + cand_ids + [self.sep_id]
-            offset = len(q_ids) + 2
+            branch = self._cls() + q_ids + self._sep() + cand_ids + self._sep()
+            offset = len(self._cls()) + len(q_ids) + len(self._sep())
             return EncodedExample(branch, [p + offset for p in opt_pos], decide_pos + offset, state_ids, [], level_index, ex.target, ex.primitive,
                                   spans=[(a + offset, b + offset) for a, b in spans])
         if mode == "biencoder":
             s_ids = self._ids(ex.state, self.max_state)
-            sq = [self.cls_id] + s_ids + [self.sep_id] + q_ids + [self.sep_id]
+            sq = self._cls() + s_ids + self._sep() + q_ids + self._sep()
             cands = [self._wrap(self._ids(c.text(), self.max_candidate)) for c in ex.candidates]
             return EncodedExample(sq, [], -1, [], cands, level_index, ex.target, ex.primitive)
         raise ValueError(mode)

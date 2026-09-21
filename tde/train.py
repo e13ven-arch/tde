@@ -57,7 +57,7 @@ class TrainConfig:
     use_confidence_head: bool = False
     branch_layers: int = 3
     branch_through_backbone: bool = True
-    marker: str = "mask"              # mask | new
+    marker: str = "mask"              # mask | new | eos (decoders)
     pool: str = "marker+span"         # marker | span | marker+span
     max_state_tokens: int = 448
     eval_every: int = 500

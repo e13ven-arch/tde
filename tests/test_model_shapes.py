@@ -61,3 +61,13 @@ def test_decision_tokenizer_marks_candidates():
     assert enc.input_ids[enc.decide_position] == dtok.decide_id
     assert enc.spans and all(enc.input_ids[a] != dtok.opt_id for a, _ in enc.spans)
     assert enc.level_index == [-1, -1, -1]
+
+
+def test_decoder_readout():
+    dtok, model = build_model("tiny-causal", "decoder", tiny="causal")
+    exs = _examples()
+    batch = collate([dtok.encode(e, "joint") for e in exs], dtok.pad_id, "joint")
+    out = model(batch)
+    assert out["logits"].shape == (3, 4)
+    assert torch.isfinite(out["logits"][batch["cand_mask"]]).all()
+    soft_cross_entropy(out["logits"], batch["target"], batch["cand_mask"]).backward()
