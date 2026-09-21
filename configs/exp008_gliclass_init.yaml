@@ -24,4 +24,4 @@ w_perm: 0.3
 max_state_tokens: 1024   # 66% of synth_multihop and 56% of hotpot states exceed 448 tokens (measured 2026-09-22)
 eval_every: 500
 seed: 0
-notes: "Pre-registered primary endpoint: JevBench public hard-tier accuracy vs Exp 006; secondary typed-decisions test and LegalBench held-out tasks.
+notes: "Pre-registered primary endpoint: JevBench public hard-tier accuracy vs Exp 006; secondary typed-decisions test and LegalBench held-out tasks."
