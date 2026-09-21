@@ -13,7 +13,8 @@ while IFS='|' read -r cfg readout out extra; do
   if [ -f "$out/eval_test.json" ]; then echo "[queue] $out already done, skipping"; continue; fi
   echo "[queue] === $out === $(date)"
   .venv/bin/python scripts/train.py --config "$cfg" --readout "$readout" --out_dir "$out" $extra
-  .venv/bin/python scripts/evaluate.py --run "$out" --split test --limit 6000 --batch_size 32
+  .venv/bin/python scripts/evaluate.py --run "$out" --data_dir "data/${DATA_DIR:-v0.1}" --split test --limit 20000 --batch_size 32
+  [ "${DATA_DIR:-v0.1}" != "v0.1" ] && .venv/bin/python scripts/evaluate.py --run "$out" --data_dir data/v0.1 --split test --limit 6000 --batch_size 32 --no-controls --out "$out/eval_test_v0.1.json"
   for f in data/${DATA_DIR:-v0.1}/eval_only/*.test.jsonl; do   # full-label-set, OOD and comparability sets (no controls, no TS refit)
     [ -f "$f" ] && .venv/bin/python scripts/evaluate.py --run "$out" --split "$f" --limit 6000 --batch_size 16 --no-controls
   done
