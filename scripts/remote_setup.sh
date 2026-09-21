@@ -8,8 +8,8 @@ if [ -x "$HOME/miniconda3/bin/conda" ] && [ ! -x "$HOME/miniconda3/envs/py312/bi
 fi
 PYB="$HOME/miniconda3/envs/py312/bin/python"; [ -x "$PYB" ] || PYB=python3
 [ -x .venv/bin/python ] || "$PYB" -m venv .venv
-.venv/bin/pip install -q -U pip
-.venv/bin/pip install -q -e '.[dev,baselines]'
+.venv/bin/pip install -U pip 2>&1 | tail -1
+.venv/bin/pip install --progress-bar off -e '.[dev,baselines]' 2>&1 | grep -E "Downloading|Installing|Successfully|ERROR|error" 
 .venv/bin/python -c 'import torch,transformers,datasets;print("torch",torch.__version__,"cuda",torch.cuda.is_available(),torch.cuda.get_device_name(0) if torch.cuda.is_available() else "");print("transformers",transformers.__version__,"datasets",datasets.__version__)'
 .venv/bin/python -m pytest -q
 echo SETUP_DONE
