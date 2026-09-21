@@ -31,8 +31,12 @@ def load_backbone(name_or_path: str, tiny: bool = False):
         cfg = BertConfig(vocab_size=len(vocab_list), hidden_size=64, num_hidden_layers=2, num_attention_heads=4,
                          intermediate_size=128, max_position_embeddings=1024)
         return tok, BertModel(cfg, add_pooling_layer=False), cfg.hidden_size
+    from transformers import AutoConfig
     tok = AutoTokenizer.from_pretrained(name_or_path)
-    backbone = AutoModel.from_pretrained(name_or_path)
+    config = AutoConfig.from_pretrained(name_or_path)
+    if hasattr(config, "reference_compile"):
+        config.reference_compile = False  # ModernBERT's Triton path needs a C compiler; SDPA fallback is fine
+    backbone = AutoModel.from_pretrained(name_or_path, config=config)
     hidden = backbone.config.hidden_size
     return tok, backbone, hidden
 
