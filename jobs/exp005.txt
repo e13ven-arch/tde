@@ -1,0 +1,2 @@
+# config|readout|out_dir|extra
+configs/exp005_breadth.yaml|joint|runs/exp005_breadth_joint|
