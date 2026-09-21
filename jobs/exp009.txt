@@ -1,0 +1,2 @@
+# config|readout|out_dir|extra
+configs/exp009_best_v04.yaml|joint|runs/exp009_best_v04|
