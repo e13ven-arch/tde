@@ -5,7 +5,7 @@
 - 架构：ModernBERT-base 编码器（149.6M）+ pointer 决策头（<1M），[MASK] 候选标记 + span 池化，一次前向输出任意候选集的分布。
 - 底座初始化：knowledgator/gliclass-modern-base-v3.0 的编码器权重（Apache-2.0），词表 50,370。
 - 训练：Stage A = Exp 010（v0.5 混合，186k 样本，1 epoch，1024 token state）；Stage B = Exp 014（typed-decisions 训练集 5,400 条，8 epoch，lr 5e-6 / 2e-5，第 1,350 步按校准集 NLL 选点）。
-- 候选发布 checkpoint：，sha256 前 16 位 ；通用版（未做专家阶段）为 。
+- 候选发布 checkpoint：`runs/exp014_typed_specialist_long/best.pt`（sha256 前 16 位 `37618128057ac54f`）；通用版（未做专家阶段）：`runs/exp010_fullk_v05/best.pt`（sha256 前 16 位 `d9877b493f104874`）。主机上冻结副本：runs/release_v0.1.0-rc1_specialist、runs/release_v0.1.0-rc1_general。
 - 损失：soft-CE + RPS 1.0 + perm-KL 0.3；后验温度 ≈1，不做温度缩放。
 
 ## 冻结指标（单 seed）
