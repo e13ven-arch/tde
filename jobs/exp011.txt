@@ -1,0 +1,2 @@
+# config|readout|out_dir|extra
+configs/exp011_typed_specialist_v2.yaml|joint|runs/exp011_typed_specialist_v2|

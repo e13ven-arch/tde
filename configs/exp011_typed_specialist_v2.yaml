@@ -1,0 +1,27 @@
+# Exp 011 — typed-decisions specialist stage on top of Exp 010 (GLiClass init, 1024 tokens, v0.5 mixture).
+# same mode as openJev-verdict-2.0). Reported on eval_only/typed_decisions.test (2,000 decisions) as "specialist".
+backbone: checkpoints/gliclass-modern-base-encoder
+readout: joint
+finetune: full
+marker: mask
+pool: marker+span
+init_from: runs/exp010_fullk_v05
+data_dir: data/typed_only
+out_dir: runs/exp011_typed_specialist_v2
+eval_limit: 2000
+epochs: 3
+batch_size: 2
+grad_accum: 16
+lr_backbone: 1.0e-5
+lr_head: 5.0e-5
+layer_decay: 0.9
+warmup_ratio: 0.1
+w_ce: 1.0
+w_rps: 1.0
+w_perm: 0.3
+group_by_state: true
+max_state_tokens: 1024
+gradient_checkpointing: true
+eval_every: 100
+seed: 0
+notes: "Primary endpoint: typed-decisions test accuracy/Brier vs Jev 0.727/0.148 and verdict-2.0 0.771/0.064."
