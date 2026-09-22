@@ -1,0 +1,3 @@
+# config|readout|out_dir|extra
+configs/exp014_typed_specialist_long.yaml|joint|runs/exp014_seed1|--seed 1
+configs/exp014_typed_specialist_long.yaml|joint|runs/exp014_seed2|--seed 2
