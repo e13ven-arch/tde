@@ -317,6 +317,8 @@ def load_checkpoint(out_dir: str | Path, device: torch.device | None = None, max
         from tde.model.encoding import DecisionTokenizer
         tok = AutoTokenizer.from_pretrained(out_dir / "tokenizer")
         dtok = DecisionTokenizer(tok, max_state_tokens=cfg.get("max_state_tokens", 448), marker=cfg.get("marker", "new"))
+        if hasattr(model.backbone, "resize_token_embeddings") and model.backbone.get_input_embeddings().weight.shape[0] != len(tok):
+            model.backbone.resize_token_embeddings(len(tok))  # e.g. GLiClass-derived vocab (50,370) on a ModernBERT-base config (50,368)
     if max_total:
         dtok.max_total = max_total  # inference-time sequence budget (ModernBERT supports 8k); training used 1024
     apply_finetune_mode(model, cfg.get("finetune", "full"))

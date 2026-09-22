@@ -1,0 +1,12 @@
+{
+  "name": "tde-general-v0.1",
+  "source_run": "runs/host/exp010_fullk_v05",
+  "readout": "joint",
+  "backbone_init": "checkpoints/gliclass-modern-base-encoder",
+  "params": 150208513,
+  "files": {
+    "model.safetensors": "76b91236eb7415c8b100f4cf9db8d60ccc6306f0f17e0b052b0f738ae69092da",
+    "config.json": "704e56b0435ec0ad3c0fe144053db13a9be7edd1e42b890ea4119eecdb69f35a",
+    "best.pt": "b0b606d46d47c7c427e1b2ce967bdb78eed53396773e37ad2ec17be84c2dcf96"
+  }
+}

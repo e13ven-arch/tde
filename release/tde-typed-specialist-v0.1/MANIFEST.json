@@ -1,0 +1,12 @@
+{
+  "name": "tde-typed-specialist-v0.1",
+  "source_run": "runs/host/exp014_typed_specialist_long",
+  "readout": "joint",
+  "backbone_init": "checkpoints/gliclass-modern-base-encoder",
+  "params": 150208513,
+  "files": {
+    "model.safetensors": "ad83f19db07fe52ae22f399fb6a094c60b3921323ff91ecd925102e09a78c08b",
+    "config.json": "e1afb6d6338306856b5b1fd5a5001307e55de7195426f6cf8040a1a18afab4ca",
+    "best.pt": "07164bf1d6531150547546f461f3b5562e159d5ce20c7d6aa828e1d008aa5a8b"
+  }
+}
