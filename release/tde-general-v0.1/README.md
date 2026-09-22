@@ -27,7 +27,7 @@ A separate checkpoint `tde-typed-specialist-v0.1` (this model + 8 epochs on the 
 ## Usage
 
 ```python
-# pip install git+https://github.com/tdelab/tde   (package name: tde)
+# pip install git+https://github.com/e13ven-arch/tde   (package name: tde)
 from tde.inference import Decider
 d = Decider.from_run("path/to/tde-general-v0.1")
 d.decide("Customer: my card was charged twice for one order.",
