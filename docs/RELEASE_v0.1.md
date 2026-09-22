@@ -19,7 +19,7 @@
 
 ## 外发前必须补齐
 
-1. Exp 014 配方 3 seeds（seed 1、2 已排队），报告均值与区间；「超过 verdict」只有在区间下界高于 77.1% 时才写。
+1. 已完成：Exp 014 三 seed 准确率均为 76.3%（seed 方差 <0.1 点），Brier 0.0627 ± 0.0003；测试集抽样区间 [74.4%, 78.2%] 覆盖 verdict 77.1%，措辞用「齐平」。
 2. 模型卡：数据来源与许可（AG News 仅限研究用途；HotpotQA CC-BY-SA-4.0；LegalBench CC-BY-4.0；typed-decisions 见其数据卡；合成数据 Apache-2.0 随生成器发布），污染检查结果，专家 / 通才两种模式分开报告。
 3. 措辞：基于公开资料的数学推导与小模型实验得到的开放设计；不探测、不调用、不蒸馏 Jev；Jev 数字全部引自第三方。
 4. 由用户执行：上传 Hugging Face（权重 + tokenizer + config），向 fstandhartinger/jevbench 提 PR（适配器 integrations/jevbench/tde_local.py）。

@@ -18,7 +18,7 @@ One forward pass over `state + question + candidates` returns a probability dist
 | Evaluation | Result | Reference rows (third party) |
 |---|---|---|
 | JevBench v1.2 public items (231) | easy 100% · standard 61.1% · hard 34.2% · Brier 0.552 | Laya 421M hard 34.1% · openJev verdict hard 38.2% · Jev 1.13 hard 74.1% |
-| typed-decisions test (2,000), specialist mode | **76.3% · Brier 0.063 · NLL 0.882** (single seed; 3-seed interval pending) | Jev 72.7% / 0.148 (generalist) · openJev-verdict-2.0 77.1% / 0.064 (specialist, self-reported) |
+| typed-decisions test (2,000), specialist mode | **76.3% · Brier 0.063 · NLL 0.882** (3 seeds: 76.3 / 76.3 / 76.3, Brier 0.0627 ± 0.0003; item-level 95% CI ±1.9 pts) | Jev 72.7% / 0.148 (generalist) · openJev-verdict-2.0 77.1% / 0.064 (specialist, self-reported) |
 | Full-label intent routing, one pass | clinc150 (150 labels) 86.5%, 82% of decisions auto-executable at ≤5% error · banking77 (77) 75.8%, 51% | — |
 | In-distribution test (7 public datasets, 6,000) | 87.5%, ECE 0.014 (noise floor 0.008) | — |
 
