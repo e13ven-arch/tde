@@ -1,0 +1,2 @@
+# config|readout|out_dir|extra
+configs/exp015_v06.yaml|joint|runs/exp015_v06_nohotpot_moresynth|

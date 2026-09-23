@@ -69,17 +69,17 @@ REGISTRY: dict[str, DatasetSpec] = {
     ),
     "synth_policy": DatasetSpec(
         name="synth_policy", hf_id="", hf_config=None, license="generated in this repo (Apache-2.0)",
-        usage="train", adapter="synth", stage=1, max_rows=8000,
+        usage="train", adapter="synth", stage=1, max_rows=20000,
         notes="Rule-generated policy compliance worlds with programmatic labels (tde/data/synth.py). Split by rule combination.",
     ),
     "synth_multihop": DatasetSpec(
         name="synth_multihop", hf_id="", hf_config=None, license="generated in this repo (Apache-2.0)",
-        usage="train", adapter="synth", stage=1, max_rows=8000,
+        usage="train", adapter="synth", stage=1, max_rows=20000,
         notes="Rule-generated JSON worlds (users / departments / tickets) with 2-3 hop questions.",
     ),
     "synth_temporal": DatasetSpec(
         name="synth_temporal", hf_id="", hf_config=None, license="generated in this repo (Apache-2.0)",
-        usage="train", adapter="synth", stage=1, max_rows=8000,
+        usage="train", adapter="synth", stage=1, max_rows=20000,
         notes="Rule-generated dates / durations / amounts in mixed formats with arithmetic labels.",
     ),
     "hotpot_qa": DatasetSpec(
