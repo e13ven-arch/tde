@@ -3,10 +3,16 @@
 Drop into `jevbench/adapters/` of https://github.com/fstandhartinger/jevbench or use scripts/run_jevbench.py,
 which registers it without modifying the benchmark. Mirrors the `verdict_local` / `local_openjev` adapters:
 one forward pass per decision, probabilities over the task's exact label list, no generation.
+
+Measured method: the model's own softmax, no post-hoc temperature (`use_temperature=False` by default; the TDE
+loader would otherwise apply a `temperature.json` if a run directory contained one). The adapter never fills in
+missing labels and never renormalises: the returned distribution is passed to the shared scorer as is, and a
+label set that differs from the task's declared labels, or a non-finite / negative value, is reported as an error.
 """
 from __future__ import annotations
 
 import json
+import math
 import time
 
 
@@ -15,8 +21,8 @@ class TdeLocalAdapter:
     cost_basis = "local_gpu_no_provider_tariff"
 
     def __init__(self, endpoint=None, model=None, key_env="", timeout_s=None, price_input_per_m=None,
-                 price_output_per_m=None, device=None, revision=None, use_temperature=True, **kwargs):
-        self.path = endpoint  # TDE run directory (config.json, tokenizer/, best.pt)
+                 price_output_per_m=None, device=None, revision=None, use_temperature=False, **kwargs):
+        self.path = endpoint  # TDE run / release directory (config.json, tokenizer/, best.pt)
         self.model = model or str(endpoint)
         self.key_env = key_env
         self.timeout_s = timeout_s
@@ -24,7 +30,7 @@ class TdeLocalAdapter:
         self.price_output_per_m = price_output_per_m
         self.device = device
         self.revision = revision
-        self.use_temperature = use_temperature
+        self.use_temperature = bool(use_temperature)
         self._decider = None
 
     def load(self):
@@ -36,18 +42,41 @@ class TdeLocalAdapter:
         return self._decider
 
     def build_question(self, task) -> dict:
+        """Map a JevBench task to a TDE question; candidates follow the task's declared label order exactly."""
         q = task.question
         qtype = q["type"]
         crit = q.get("criteria")
         if qtype == "choice":
             crit = crit if isinstance(crit, dict) else {}
-            # exact label list from the task, descriptions from the rubric when present
-            criteria = {lab: (crit.get(lab) or "") for lab in task.labels}
-            return {"type": "choice", "instructions": q["instructions"], "criteria": criteria}
+            return {"type": "choice", "instructions": q["instructions"],
+                    "criteria": {lab: (crit.get(lab) or "") for lab in task.labels}}
         if qtype == "score":
-            levels = list(crit) if isinstance(crit, list) else [str(i) for i in range(len(task.labels))]
+            levels = list(crit) if isinstance(crit, list) else [""] * len(task.labels)
+            if len(levels) != len(task.labels):
+                raise ValueError(f"score criteria has {len(levels)} levels but the task declares {len(task.labels)} labels")
             return {"type": "score", "instructions": q["instructions"], "criteria": levels}
         return {"type": "noul", "instructions": q["instructions"], "criteria": crit if isinstance(crit, dict) else {}}
+
+    @staticmethod
+    def to_label_probs(out: dict, task) -> dict:
+        """Native probabilities keyed by the task's declared labels; no filling, no renormalisation.
+
+        Raises ValueError when the returned label set differs from the declared one or a value is not a finite
+        non-negative number, so the caller reports an error instead of a repaired distribution."""
+        p = out.get("probabilities")
+        if not isinstance(p, dict):
+            raise ValueError("model returned no probability mapping")
+        declared = list(task.labels)
+        returned = set(p)
+        if returned != set(declared):
+            raise ValueError(f"label set mismatch: returned {sorted(returned)} vs declared {declared}")
+        probs = {}
+        for lab in declared:
+            v = p[lab]
+            if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or v < 0:
+                raise ValueError(f"invalid probability for {lab!r}: {v!r}")
+            probs[lab] = float(v)
+        return probs
 
     def run(self, task):
         from jevbench.adapters.base import DecisionResult
@@ -69,19 +98,14 @@ class TdeLocalAdapter:
             res.error = f"{type(e).__name__}: {str(e)[:300]}"
             return res
         res.latency_s = time.perf_counter() - t0
-        p = out["probabilities"]
-        if task.question["type"] == "noul":
-            probs = {"no": p.get("no", 0.0), "yes": p.get("yes", 0.0)}
-        else:
-            probs = {lab: float(p.get(lab, 0.0)) for lab in task.labels}
-        total = sum(probs.values())
-        if total <= 0:
-            res.error = "no probability mass on the label set"
+        res.raw = {"response": out, "runtime": {"device": str(getattr(d, "device", "")), "temperature_scaled": bool(getattr(d, "temperature", None) is not None),
+                                                 "readout": getattr(d, "cfg", {}).get("readout"), "backbone": getattr(d, "cfg", {}).get("backbone"),
+                                                 "probability_origin": "native softmax over the declared label set; passed through unmodified"}}
+        try:
+            res.probs = self.to_label_probs(out, task)
+        except ValueError as e:
+            res.error = str(e)
             return res
-        res.probs = {k: v / total for k, v in probs.items()}
-        res.raw = {"response": out, "runtime": {"device": str(d.device), "temperature_scaled": d.temperature is not None,
-                                                 "readout": d.cfg.get("readout"), "backbone": d.cfg.get("backbone"),
-                                                 "probability_origin": "native softmax over the label set"}}
         res.ok = True
         return res
 
