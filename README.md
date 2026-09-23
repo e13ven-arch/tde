@@ -13,12 +13,29 @@ This is a **matched-parameter study**, not a new architecture: encoder + candida
 ## Layout
 
 ```
-tde/            model, data pipeline, losses, calibration, evaluation
-scripts/        build_data.py · train.py · evaluate.py · smoke_test.py
-configs/        one YAML per experiment
-tests/          split determinism, template leakage, metrics, model shapes
-docs/           plan, protocol, pre-registration files
-data/ runs/     generated (git-ignored)
+tde/              model, data pipeline, losses, calibration, evaluation, inference API
+scripts/          build_data.py · train.py · evaluate.py · run_jevbench.py · export_release.py · …
+configs/release/  the two released models' training configs (general = Exp 010, specialist = Exp 014)
+configs/          one YAML per experiment (ablations documented in docs/RESULTS_*.md)
+integrations/     JevBench in-process adapter and tests
+release/          model cards of tdelab/tde-general-v0.1 and tdelab/tde-typed-specialist-v0.1 (weights on Hugging Face)
+tests/            split determinism, template leakage, metrics, model shapes, losses, synthetic data
+docs/             plan, data inventories, results, release record
+ops/              the authors' training-host scripts (not needed to use the model)
+data/ runs/       generated (git-ignored)
+```
+
+## Released models
+
+| Model | Hugging Face | Config | Use for |
+|---|---|---|---|
+| tde-general-v0.1 | `tdelab/tde-general-v0.1` | `configs/release/tde-general-v0.1.yaml` | zero-shot typed decisions (JevBench-style workloads) |
+| tde-typed-specialist-v0.1 | `tdelab/tde-typed-specialist-v0.1` | `configs/release/tde-typed-specialist-v0.1.yaml` | the four typed-decisions workflows (specialist mode) |
+
+```python
+from tde.inference import Decider
+d = Decider.from_run("tdelab/tde-general-v0.1")   # or a local run / release directory
+d.decide(state, {"type": "choice", "instructions": "...", "criteria": {"a": "...", "b": "..."}})
 ```
 
 ## Quick start
@@ -32,7 +49,6 @@ python scripts/build_data.py --stage 0      # downloads public datasets, writes 
 python scripts/train.py --config configs/exp001_readout.yaml --readout joint
 python scripts/evaluate.py --run runs/exp001_joint_full --split test
 python scripts/run_baseline.py --baseline nli --limit 2000    # Track-B zero-shot baseline
-scripts/remote.sh sync && scripts/remote.sh setup             # GPU host workflow (see script header)
 ```
 
 Data inventory and licenses: [docs/DATA.md](docs/DATA.md).

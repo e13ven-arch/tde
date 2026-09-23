@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Helper for running experiments on the GPU host (default bot@192.168.0.102).
+# Helper for running experiments on the GPU host (default user@host).
 #   scripts/remote.sh sync                 # rsync code (no data, no venv) to $REMOTE:$REMOTE_DIR
 #   scripts/remote.sh setup                # create venv + install deps on the host
 #   scripts/remote.sh data                 # build the stage-0 corpus on the host (downloads from HF there)
@@ -8,7 +8,7 @@
 #   scripts/remote.sh pull runs/exp001_branch   # fetch a run directory back
 #   scripts/remote.sh probe                # GPU / python / disk on the host
 set -euo pipefail
-REMOTE="${REMOTE:-bot@192.168.0.102}"
+REMOTE="${REMOTE:?set REMOTE=user@host}"
 REMOTE_DIR="${REMOTE_DIR:-~/jev}"
 PY="${REMOTE_PY:-python3}"
 SSH_OPTS="${SSH_OPTS:--i $HOME/.ssh/id_ed25519_jevbot -o BatchMode=yes}"
