@@ -178,5 +178,18 @@ Brier 已低于 verdict，准确率差 0.8 个点（在 ±2 个点的区间内�
 - 候选 span 池化在两种标记下都无显著影响（差 0.2～0.6 个点，落在 seed 方差内）。Exp 001 里 v1→v2 的提升应完全归于 [MASK]，之前把 span 池化算作贡献之一是错的。
 - 差距在弱数据集最大：新增标记在 snli 接近随机（0.48～0.52），score 型 0.26～0.38；[MASK] 在同样 1 epoch 下 snli 0.86。
 
-## Exp 018 DeBERTa-v3-base 复核（进行中）
-同一 2 格（[MASK]/marker+span、新标记/marker）在 DeBERTa-v3-base（184M，512 位置，`configs/exp018_deberta.yaml`）上各跑 1 seed。
+## Exp 018 DeBERTa-v3-base 复核（v0.1 测试集，1 epoch，1 seed，`configs/exp018_deberta.yaml`，184M，512 位置）
+
+第一次跑无效：DeBERTa-v3 权重文件以 fp16 存储，transformers 5 按存储精度加载，骨干以 fp16 参数做 AdamW 更新全部下溢，损失 2,188 步不动（40%，随机水平）。修复为编码器一律 fp32 加载后重跑。
+
+| 骨干 | 标记 | 池化 | acc | NLL | cov@5% |
+|---|---|---|---|---|---|
+| DeBERTa-v3-base | [MASK] | marker+span | 0.882 | 0.301 | 0.80 |
+| DeBERTa-v3-base | 新增标记 | marker | 0.877 | 0.318 | 0.77 |
+| ModernBERT-base（Exp 017 均值） | [MASK] | marker+span | 0.863 | 0.337 | 0.72 |
+| ModernBERT-base（Exp 017 均值） | 新增标记 | marker | 0.600 | 0.755 | 0.12 |
+
+结论：
+- **读出位置的效应依赖骨干。** DeBERTa 上新增标记只比 [MASK] 低 0.5 个点、NLL 高 0.017，与 Exp 017 的 26 点差距完全不同。[MASK] 在两个骨干上都稳，新增标记只在 ModernBERT 上失败。所以论文的表述应是"[MASK] 位置是跨骨干鲁棒的读出位置；新增标记能否学会取决于骨干"，而不是"必须用 [MASK]"。
+- 同样 1 epoch、Stage 0 数据，DeBERTa-v3-base 比 ModernBERT-base 高 1.7～1.9 个点（0.882 vs 0.863），snli/boolq 差距最大（+3.6 / +8）。代价是 512 位置上限、1.1 s/step（ModernBERT 0.6 s/step），且后续 GLiClass 初始化、1024 token 的配方不可移植。
+- 单 seed；ModernBERT 侧 [MASK] 格 seed 方差 ±0.2，可比。
