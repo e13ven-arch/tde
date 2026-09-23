@@ -161,3 +161,22 @@ Brier 已低于 verdict，准确率差 0.8 个点（在 ±2 个点的区间内�
 | clinc150 全标签 | 86.5% | 86.6% |
 
 规则数据从 8k 加到 20k 世界只在其自身测试集上多 1～2 个点，对 JevBench 无影响；去掉 HotpotQA 无副作用。数据广度这条曲线到此饱和。
+
+## Exp 017 读出位置 2×2×3（v0.1 测试集 5,700 题，Stage 0 设置：`configs/exp001_readout.yaml`，1 epoch，ModernBERT-base）
+
+每格 3 seeds；seed 0 的 new/marker 与 mask/marker+span 直接复用 Exp 001 的 joint v1 / v2（同配置），其余 10 次为本次新跑。数字为 seed 均值 ± 样本标准差。
+
+| 标记 | 池化 | acc | NLL | cov@5% |
+|---|---|---|---|---|
+| [MASK] | marker | 0.865 ± 0.002 | 0.333 ± 0.001 | 0.72 |
+| [MASK] | marker+span | 0.863 ± 0.002 | 0.337 ± 0.003 | 0.72 |
+| 新增标记 | marker | 0.600 ± 0.015 | 0.755 ± 0.019 | 0.12 |
+| 新增标记 | marker+span | 0.606 ± 0.052 | 0.730 ± 0.090 | 0.14 |
+
+结论：
+- 全部效应在"标记"这一维：用预训练的 [MASK] 位置做读出比新增标记高 26 个点，NLL 减半，且 seed 间几乎无方差（±0.2）；新增标记 1 epoch 内学不出稳定表示（±1.5～5.2，seed 之间差到 10 个点）。
+- 候选 span 池化在两种标记下都无显著影响（差 0.2～0.6 个点，落在 seed 方差内）。Exp 001 里 v1→v2 的提升应完全归于 [MASK]，之前把 span 池化算作贡献之一是错的。
+- 差距在弱数据集最大：新增标记在 snli 接近随机（0.48～0.52），score 型 0.26～0.38；[MASK] 在同样 1 epoch 下 snli 0.86。
+
+## Exp 018 DeBERTa-v3-base 复核（进行中）
+同一 2 格（[MASK]/marker+span、新标记/marker）在 DeBERTa-v3-base（184M，512 位置，`configs/exp018_deberta.yaml`）上各跑 1 seed。

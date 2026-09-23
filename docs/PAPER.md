@@ -33,7 +33,7 @@
 - 4.3 外部基准：typed-decisions（专家 / 通才模式分开）、JevBench 公开题（并说明保留题由维护者运行）。
 
 ## 5 实验
-- 5.1 读出位置（表 2：2×2 标记 × span，3 seeds，ModernBERT 与 DeBERTa）→ 待补：Exp 017 / 016。
+- 5.1 读出位置（表 2：2×2 标记 × span，3 seeds，ModernBERT；DeBERTa 复核）→ 已有：Exp 017（[MASK] 0.865±0.002 vs 新增标记 0.600±0.015；span 池化无影响）；Exp 018 进行中。
 - 5.2 读出结构（表 3：joint / branch / bi-encoder，含训练成本）→ 已有：Exp 001。
 - 5.3 目标函数（表 4：五个 arm 的准确率、NLL、ECE、AURC、一致性、温度）→ 已有：Exp 003。
 - 5.4 候选拓扑与候选数（表 5：seq / pointwise / set 在 K≥77 全集与分布内的配对比较；一次前向 / 分块 / 锦标赛 × 训练 K 上限）→ 已有：Exp 016（单 seed，待 3 seeds）、Stage 1、Exp 006、010。
@@ -41,7 +41,7 @@
 - 5.6 外部对照（表 7：typed-decisions 专家模式 vs Jev / verdict；JevBench 公开题与官方分）→ 待：官方分。
 
 ## 6 分析
-- 读出位置的机制：[MASK] 位置表示与候选 span 的相似度分析；新增标记的学习曲线（Mac 上 3,200 条 = v1 的 16,000 条）。
+- 读出位置的机制：[MASK] 位置表示与候选 span 的相似度分析；新增标记的学习曲线（Mac 上 3,200 条 = v1 的 16,000 条）；新增标记 seed 方差大 10 倍（Exp 017），说明差距来自初始化而非容量。
 - 哪些 hard 题型失败及为什么（按 family 的准确率与置信度）。
 - 校准来自哪里：Brier 分解（可靠性 / 分辨率）。
 
@@ -52,7 +52,7 @@
 图 1 序列布局与读出；图 2 数据版本曲线；图 3 风险覆盖曲线（joint / bi-encoder / branch）；表 1 数据集与许可；表 2–7 如上；附录：控制块全表、合成数据模板、污染检查、JevBench 按题型。
 
 ## 待补实验（进行中）
-- Exp 017：标记 × span × 3 seeds（12 次，Stage 0 设置）。
+- ~~Exp 017~~ 完成，见 RESULTS_exp005.md。
 - Exp 018：DeBERTa-v3-base 上 [MASK]+span 与新标记两种读出。
 - Exp 016 的 3 seeds 复核（pointwise / set / seq），以及 pointwise / set 的 typed-decisions 专家阶段（选项经设计时互看是否必要）。
 - JevBench 官方综合分（issue #39 排队中）。
