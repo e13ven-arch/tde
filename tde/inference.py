@@ -69,7 +69,12 @@ class Decider:
         self.dtok, self.model, self.cfg, self.device, self.temperature, self.batch_size = dtok, model, cfg, device, temperature, batch_size
 
     @classmethod
-    def from_run(cls, run_dir: str | Path, device: str | None = None, use_temperature: bool = True, batch_size: int = 16) -> "Decider":
+    def from_run(cls, run_dir: str | Path, device: str | None = None, use_temperature: bool = True, batch_size: int = 16,
+                 revision: str | None = None) -> "Decider":
+        """`run_dir` is a local run / release directory or a Hugging Face model id (e.g. "tdelab/tde-general-v0.1")."""
+        if not Path(run_dir).exists() and "/" in str(run_dir) and not str(run_dir).startswith((".", "/")):
+            from huggingface_hub import snapshot_download
+            run_dir = snapshot_download(str(run_dir), revision=revision, allow_patterns=["config.json", "best.pt", "tokenizer/*", "temperature.json", "MANIFEST.json"])
         run_dir = Path(run_dir)
         dtok, model, cfg, dev = load_checkpoint(run_dir, torch.device(device) if device else None)
         temp = None
