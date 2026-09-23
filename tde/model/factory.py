@@ -17,8 +17,16 @@ def load_backbone(name_or_path: str, tiny: bool = False):
     """Return (tokenizer, backbone, hidden). `tiny=True` builds a random small BERT for tests."""
     from transformers import AutoModel, AutoTokenizer
 
+    if tiny == "modernbert":
+        from transformers import ModernBertConfig, ModernBertModel
+        tok = _tiny_tokenizer()
+        ids = {f"{t}_token_id": tok.convert_tokens_to_ids(f"[{t.upper()}]") for t in ("pad", "cls", "sep")}
+        # initializer_range 0.2 gives peaked, position-sensitive attention, so layout bugs show up in tests
+        cfg = ModernBertConfig(vocab_size=len(tok), hidden_size=64, intermediate_size=128, num_hidden_layers=3, num_attention_heads=4,
+                               local_attention=8, global_attn_every_n_layers=3, max_position_embeddings=1024, initializer_range=0.2,
+                               bos_token_id=ids["cls_token_id"], eos_token_id=ids["sep_token_id"], **ids)
+        return tok, ModernBertModel(cfg), cfg.hidden_size
     if tiny == "causal" or (tiny and name_or_path == "tiny-causal"):
-        from tde.model.factory import _tiny_tokenizer
         from transformers import LlamaConfig, LlamaModel
         tok = _tiny_tokenizer()
         tok.eos_token = "[SEP]"
@@ -69,9 +77,11 @@ def _tiny_tokenizer():
 
 def build_model(backbone_name: str, readout: str, *, tiny: bool = False, use_confidence_head: bool = False,
                 branch_layers: int = 3, max_state_tokens: int = 448, branch_through_backbone: bool = True,
-                marker: str = "mask", pool: str = "marker+span") -> tuple[DecisionTokenizer, nn.Module]:
+                marker: str = "mask", pool: str = "marker+span", topology: str = "seq") -> tuple[DecisionTokenizer, nn.Module]:
+    if topology != "seq" and readout != "joint":
+        raise ValueError(f"topology={topology!r} is only defined for the joint readout")
     tok, backbone, hidden = load_backbone(backbone_name, tiny=tiny)
-    dtok = DecisionTokenizer(tok, max_state_tokens=max_state_tokens, marker=marker)
+    dtok = DecisionTokenizer(tok, max_state_tokens=max_state_tokens, marker=marker, max_total=max_total)
     if dtok.added_tokens:
         backbone.resize_token_embeddings(len(tok))
     if readout == "decoder" and not tiny and hasattr(backbone, "gradient_checkpointing_enable"):
@@ -84,7 +94,7 @@ def build_model(backbone_name: str, readout: str, *, tiny: bool = False, use_con
         model = cls(backbone, hidden, n_layers=branch_layers, n_heads=heads, use_confidence_head=use_confidence_head,
                     branch_through_backbone=branch_through_backbone, pool=pool)
     else:
-        model = cls(backbone, hidden, use_confidence_head=use_confidence_head, pool=pool) if readout == "joint" else cls(backbone, hidden)
+        model = cls(backbone, hidden, use_confidence_head=use_confidence_head, pool=pool, topology=topology) if readout == "joint" else cls(backbone, hidden)
     return dtok, model
 
 

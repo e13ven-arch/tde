@@ -1,0 +1,4 @@
+# Exp 016 candidate topology (Stage 0 size). config|readout|out_dir|extra
+configs/exp016_topology.yaml|joint|runs/exp016_pointwise|--topology pointwise
+configs/exp016_topology.yaml|joint|runs/exp016_set|--topology set
+configs/exp016_topology.yaml|joint|runs/exp016_seq|--topology seq

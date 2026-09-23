@@ -59,7 +59,9 @@ class TrainConfig:
     branch_through_backbone: bool = True
     marker: str = "mask"              # mask | new | eos (decoders)
     pool: str = "marker+span"         # marker | span | marker+span
+    topology: str = "seq"             # joint only: seq | pointwise | set (tied candidate positions + set masks, ModernBERT)
     max_state_tokens: int = 448
+    max_total: int = 1024             # sequence budget for the joint layout
     gradient_checkpointing: bool = False  # trade compute for memory (needed for 1024-token states on 8 GB)
     eval_every: int = 500
     log_every: int = 25
@@ -212,8 +214,9 @@ def train(cfg: TrainConfig) -> dict:
         print(f"[train] per-dataset cap {cfg.per_dataset_cap}: {seen}")
     cal_ex = load_jsonl(Path(cfg.data_dir) / "calibration.jsonl", cfg.eval_limit)
     dtok, model = build_model(cfg.backbone, cfg.readout, tiny=cfg.tiny, use_confidence_head=cfg.use_confidence_head,
-                              branch_layers=cfg.branch_layers, max_state_tokens=cfg.max_state_tokens,
-                              branch_through_backbone=cfg.branch_through_backbone, marker=cfg.marker, pool=cfg.pool)
+                              branch_layers=cfg.branch_layers, max_state_tokens=cfg.max_state_tokens, max_total=cfg.max_total,
+                              branch_through_backbone=cfg.branch_through_backbone, marker=cfg.marker, pool=cfg.pool,
+                              topology=cfg.topology)
     if cfg.gradient_checkpointing and hasattr(model.backbone, "gradient_checkpointing_enable"):
         model.backbone.gradient_checkpointing_enable()
         print("[train] gradient checkpointing enabled")
@@ -311,12 +314,14 @@ def load_checkpoint(out_dir: str | Path, device: torch.device | None = None, max
     dtok, model = build_model(cfg["backbone"], cfg["readout"], tiny=tiny, use_confidence_head=cfg.get("use_confidence_head", False),
                               branch_layers=cfg.get("branch_layers", 3), max_state_tokens=cfg.get("max_state_tokens", 448),
                               branch_through_backbone=cfg.get("branch_through_backbone", True),
-                              marker=cfg.get("marker", "new"), pool=cfg.get("pool", "marker"))  # old checkpoints predate these keys
+                              marker=cfg.get("marker", "new"), pool=cfg.get("pool", "marker"),  # old checkpoints predate these keys
+                              topology=cfg.get("topology", "seq"))
     if not tiny:
         from transformers import AutoTokenizer
         from tde.model.encoding import DecisionTokenizer
         tok = AutoTokenizer.from_pretrained(out_dir / "tokenizer")
-        dtok = DecisionTokenizer(tok, max_state_tokens=cfg.get("max_state_tokens", 448), marker=cfg.get("marker", "new"))
+        dtok = DecisionTokenizer(tok, max_state_tokens=cfg.get("max_state_tokens", 448), marker=cfg.get("marker", "new"),
+                                 max_total=cfg.get("max_total", 1024))
         if hasattr(model.backbone, "resize_token_embeddings") and model.backbone.get_input_embeddings().weight.shape[0] != len(tok):
             model.backbone.resize_token_embeddings(len(tok))  # e.g. GLiClass-derived vocab (50,370) on a ModernBERT-base config (50,368)
     if max_total:

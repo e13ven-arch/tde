@@ -1,0 +1,27 @@
+# Exp 016 — candidate topology in the joint encoder (Stage 0 size, joint v2, no perm-KL). Run once per --topology:
+#   seq        ordinary sequential candidates (control; = Exp 003 "no perm-KL" arm, retrained in the same session)
+#   pointwise  tied candidate positions, candidates see prefix + themselves (IIA by construction)
+#   set        pointwise + [OPT] markers and [DECIDE] see every marker (listwise, still equivariant)
+backbone: answerdotai/ModernBERT-base
+readout: joint
+finetune: full
+data_dir: data/v0.1
+out_dir: runs/exp016_seq
+train_limit: 80000
+per_dataset_cap: 10000
+eval_limit: 3000
+epochs: 1
+batch_size: 4
+grad_accum: 8
+lr_backbone: 2.0e-5
+lr_head: 1.0e-4
+layer_decay: 0.9
+warmup_ratio: 0.05
+w_ce: 1.0
+w_rps: 0.5
+w_perm: 0.0
+max_state_tokens: 448
+eval_every: 500
+seed: 0
+topology: seq
+notes: "Pre-registered in docs/PREREGISTRATION.md (Exp 016): primary = full-label-set one-pass accuracy at a 4096-token budget, pointwise vs seq."

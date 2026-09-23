@@ -28,6 +28,8 @@ class EncodedExample:
     target: list[float]
     primitive: str
     spans: list[tuple[int, int]] | None = None  # [start, end) of each candidate's text tokens (joint/branch)
+    block_ids: list[int] | None = None  # joint: -1 prefix, i = candidate i ([OPT] + text), -2 [DECIDE] and closing [SEP]
+    tied_positions: list[int] | None = None  # joint: position ids with every candidate block starting at the same position
 
 
 class DecisionTokenizer:
@@ -97,8 +99,9 @@ class DecisionTokenizer:
             prefix = self._cls() + s_ids + self._sep() + q_ids + self._sep()
             input_ids = prefix + cand_ids + self._sep()
             offset = len(prefix)
+            block_ids, tied = _tied_layout(offset, opt_pos, decide_pos, len(input_ids) - offset - decide_pos, 1 + self.max_candidate)
             return EncodedExample(input_ids, [p + offset for p in opt_pos], decide_pos + offset, [], [], level_index, ex.target, ex.primitive,
-                                  spans=[(a + offset, b + offset) for a, b in spans])
+                                  spans=[(a + offset, b + offset) for a, b in spans], block_ids=block_ids, tied_positions=tied)
         if mode == "branch":
             state_ids = self._wrap(self._ids(ex.state, self.max_state))
             branch = self._cls() + q_ids + self._sep() + cand_ids + self._sep()
@@ -111,6 +114,22 @@ class DecisionTokenizer:
             cands = [self._wrap(self._ids(c.text(), self.max_candidate)) for c in ex.candidates]
             return EncodedExample(sq, [], -1, [], cands, level_index, ex.target, ex.primitive)
         raise ValueError(mode)
+
+
+def _tied_layout(prefix_len: int, opt_pos: list[int], decide_pos: int, n_after: int, max_block: int) -> tuple[list[int], list[int]]:
+    """Block ids and position ids for the joint layout in which every candidate block starts at position prefix_len.
+
+    opt_pos / decide_pos are relative to the candidate block; n_after counts [DECIDE] and the closing [SEP]. They sit
+    at prefix_len + max_block (the longest possible block), so their positions depend on neither the order nor the
+    set of candidates."""
+    bounds = opt_pos + [decide_pos]
+    block, pos = [-1] * prefix_len, list(range(prefix_len))
+    for i, (a, b) in enumerate(zip(bounds, bounds[1:])):
+        assert b - a <= max_block
+        block += [i] * (b - a)
+        pos += range(prefix_len, prefix_len + b - a)
+    start = prefix_len + max_block
+    return block + [-2] * n_after, pos + list(range(start, start + n_after))
 
 
 def _pad(seqs: list[list[int]], pad_id: int) -> tuple[torch.Tensor, torch.Tensor]:
@@ -148,6 +167,8 @@ def collate(encoded: list[EncodedExample], pad_id: int, mode: str) -> dict[str, 
                 span_start[i, j], span_end[i, j] = a, b
         batch.update(input_ids=ids, attention_mask=mask, opt_positions=opt, span_start=span_start, span_end=span_end,
                      decide_positions=torch.tensor([e.decide_position for e in encoded], dtype=torch.long))
+        if all(e.block_ids is not None for e in encoded):  # pad value -3 marks padding in the set masks
+            batch.update(block_ids=_pad([e.block_ids for e in encoded], -3)[0], position_ids=_pad([e.tied_positions for e in encoded], 0)[0])
         if mode == "branch":
             # de-duplicate identical states so a shared state is encoded once
             uniq: dict[tuple[int, ...], int] = {}
