@@ -53,7 +53,9 @@ def load_backbone(name_or_path: str, tiny: bool = False):
     config = AutoConfig.from_pretrained(name_or_path)
     if hasattr(config, "reference_compile"):
         config.reference_compile = False  # ModernBERT's Triton path needs a C compiler; SDPA fallback is fine
-    kwargs = {}
+    # Encoders always load as fp32 master weights: transformers 5 keeps the checkpoint's storage dtype, and a fp16-stored
+    # checkpoint (DeBERTa-v3) trained in fp16 with plain AdamW underflows every update (Exp 018 first attempt: flat loss).
+    kwargs = {"dtype": torch.float32}
     if getattr(config, "is_decoder", False) or config.model_type in ("qwen3", "qwen2", "llama", "gemma3_text", "gemma3"):
         kwargs["dtype"] = torch.bfloat16 if torch.cuda.is_available() else torch.float32  # decoders: bf16 weights to fit 8 GB
     backbone = AutoModel.from_pretrained(name_or_path, config=config, **kwargs)

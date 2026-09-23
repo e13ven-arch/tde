@@ -322,12 +322,15 @@ def load_checkpoint(out_dir: str | Path, device: torch.device | None = None, max
         tok = AutoTokenizer.from_pretrained(out_dir / "tokenizer")
         dtok = DecisionTokenizer(tok, max_state_tokens=cfg.get("max_state_tokens", 448), marker=cfg.get("marker", "new"),
                                  max_total=cfg.get("max_total", 1024))
-        if hasattr(model.backbone, "resize_token_embeddings") and model.backbone.get_input_embeddings().weight.shape[0] != len(tok):
-            model.backbone.resize_token_embeddings(len(tok))  # e.g. GLiClass-derived vocab (50,370) on a ModernBERT-base config (50,368)
+    state = torch.load(out_dir / "best.pt", map_location="cpu")
+    if not tiny:
+        emb_key = next((k for k in state if k.endswith("word_embeddings.weight") or k.endswith("embed_tokens.weight")), None)
+        n_rows = state[emb_key].shape[0] if emb_key else len(tok)  # follow the checkpoint, not the tokenizer: DeBERTa-v3 ships
+        if hasattr(model.backbone, "resize_token_embeddings") and model.backbone.get_input_embeddings().weight.shape[0] != n_rows:
+            model.backbone.resize_token_embeddings(n_rows)  # 128,100 rows for a 128,001-token tokenizer; GLiClass 50,370 on 50,368
     if max_total:
         dtok.max_total = max_total  # inference-time sequence budget (ModernBERT supports 8k); training used 1024
     apply_finetune_mode(model, cfg.get("finetune", "full"))
-    state = torch.load(out_dir / "best.pt", map_location="cpu")
     model.load_state_dict(state, strict=False)
     model.to(device).eval()
     return dtok, model, cfg, device
