@@ -22,7 +22,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
-baselines = ["peft>=0.12", "sentencepiece>=0.2"]
+baselines = ["peft>=0.12", "sentencepiece>=0.2", "tiktoken>=0.7"]
 
 [tool.setuptools.packages.find]
 include = ["tde*"]
