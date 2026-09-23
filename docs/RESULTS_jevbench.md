@@ -11,6 +11,7 @@
 | Exp 008 GLiClass 底座 + 1024 token | v0.3 | 100% | 65.3% | **35.1%** | 58.0% | — | — |
 | Exp 009 GLiClass 底座 + 1024 token | v0.4 | 97.9% | 56.9% | 33.3% | 54.1% | — | — |
 | Exp 010 GLiClass 底座 + 1024 token + v0.5 | v0.5 | 100% | 61.1% | 34.2% | 56.3% | 0.552 | 0.115 |
+| Exp 015 去 HotpotQA，规则数据 2.5× | v0.6 | 100% | 63.9% | 33.3% | 56.7% | — | — |
 
 hard 层第三方参照：Jev 1.13 为 74.1%，SemIf（Qwen3.5-4B）59.5%，kev 0.6B 为 40.0%，openJev verdict（ModernBERT-base）38.2%，GLiNER2.5 multi 37.7%，Laya 421M 为 34.1%。
 
@@ -22,3 +23,6 @@ tool_selection 12/12、fact 12/12、intent 21/24、extraction 19/24、ordinal 9/
 
 
 Exp 010 hard 层按题型：adversarial 4/6，ambiguous 1/7，judge_hard 5/17，long_policy 5/19，multi_hop 4/18，probability 6/10，routing_hard 2/5，temporal_numeric 5/15，tradeoff 3/6，trap 3/8。四次运行的 hard 层在 28.8%～34.2% 之间，111 题的置信区间约 ±9 个点，目前与 Laya（34.1%）持平、低于 verdict（38.2%）。
+
+
+**平台结论（2026-09-23）**：Exp 005 → 015 六个数据版本在 hard 层落在 33.3%～35.1%（111 题，±9 点区间），同尺寸开源编码器簇为 34%～40%。在不增加模型尺寸的前提下，数据侧的杠杆已用尽；第一期停止追 hard 层，等待维护者的正式综合分。
