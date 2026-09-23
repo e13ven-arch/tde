@@ -1,0 +1,21 @@
+TDE — Typed Decision Encoder
+Copyright 2026 tdelab / e13ven-arch
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Third-party components and attributions
+---------------------------------------
+- Backbone architecture: ModernBERT-base (Answer.AI / LightOn), Apache-2.0.
+- Backbone initialisation: encoder weights of knowledgator/gliclass-modern-base-v3.0 (GLiClass), Apache-2.0.
+- Confidence formula in tde/inference.py follows the MIT-licensed typesafe-ai/system-one-adapter-python.
+- integrations/jevbench/: adapter written against the JevBench harness (fstandhartinger/jevbench, MIT).
+
+Training data (see docs/DATA.md and docs/DATA_v0.2.md for sizes, splits and the contamination check)
+- banking77 (CC-BY-4.0), clinc150 (CC-BY-3.0), GoEmotions (Apache-2.0), LegalBench (CC-BY-4.0),
+  BoolQ (CC-BY-SA-3.0), SNLI (CC-BY-SA-4.0), HotpotQA (CC-BY-SA-4.0; used in v0.2–v0.5 only),
+  AG News (AG corpus terms: research / non-commercial use), SST-5 (research use),
+  LocalLLaMA/typed-decisions (see its dataset card), rule-generated worlds (this repository, Apache-2.0).
+  Users of the released weights are responsible for checking that these dataset terms fit their use.
+
+This project does not use, call, probe or distil TypeSafe's Jev; Jev figures in the documentation are
+quoted from third-party publications. "Jev" and "System One" are marks of their respective owners.
