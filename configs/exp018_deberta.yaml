@@ -1,9 +1,9 @@
-# Exp 016 — readout ablation on a second backbone (DeBERTa-v3-base, 184M, 512 positions).
+# Exp 018 — readout ablation on a second backbone (DeBERTa-v3-base, 184M, 512 positions).
 backbone: checkpoints/deberta-v3-base
 readout: joint
 finetune: full
 data_dir: data/v0.1
-out_dir: runs/exp016_deberta
+out_dir: runs/exp018_deberta
 train_limit: 80000        # Stage 0 cap; raise for Stage 1
 per_dataset_cap: 10000    # balanced mix over the 8 datasets
 eval_limit: 3000

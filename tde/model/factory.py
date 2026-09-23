@@ -77,7 +77,7 @@ def _tiny_tokenizer():
 
 def build_model(backbone_name: str, readout: str, *, tiny: bool = False, use_confidence_head: bool = False,
                 branch_layers: int = 3, max_state_tokens: int = 448, branch_through_backbone: bool = True,
-                marker: str = "mask", pool: str = "marker+span", topology: str = "seq") -> tuple[DecisionTokenizer, nn.Module]:
+                marker: str = "mask", pool: str = "marker+span", topology: str = "seq", max_total: int = 1024) -> tuple[DecisionTokenizer, nn.Module]:
     if topology != "seq" and readout != "joint":
         raise ValueError(f"topology={topology!r} is only defined for the joint readout")
     tok, backbone, hidden = load_backbone(backbone_name, tiny=tiny)

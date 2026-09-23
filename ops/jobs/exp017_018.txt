@@ -9,5 +9,5 @@ configs/exp001_readout.yaml|joint|runs/exp017_readout_new_marker_s2|--marker new
 configs/exp001_readout.yaml|joint|runs/exp017_readout_new_markerspan_s2|--marker new --pool marker+span --seed 2
 configs/exp001_readout.yaml|joint|runs/exp017_readout_mask_marker_s2|--marker mask --pool marker --seed 2
 configs/exp001_readout.yaml|joint|runs/exp017_readout_mask_markerspan_s2|--marker mask --pool marker+span --seed 2
-configs/exp016_deberta.yaml|joint|runs/exp016_deberta_mask_markerspan|--marker mask --pool marker+span --seed 0
-configs/exp016_deberta.yaml|joint|runs/exp016_deberta_new_marker|--marker new --pool marker --seed 0
+configs/exp018_deberta.yaml|joint|runs/exp018_deberta_mask_markerspan|--marker mask --pool marker+span --seed 0
+configs/exp018_deberta.yaml|joint|runs/exp018_deberta_new_marker|--marker new --pool marker --seed 0
