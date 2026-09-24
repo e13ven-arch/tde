@@ -94,4 +94,20 @@ typed-decisions 零样本（2,000 题，未配对检验）：seq 37.5%，pointwi
 
 hard 层按题型（seq / pointwise / set）：long_policy 3 / 8 / 8 of 19，tradeoff 3 / 5 / 5 of 6，temporal_numeric 3 / 5 / 4 of 15，probability 4 / 5 / 6 of 10，routing_hard 1 / 2 / 3 of 5；multi_hop 4 / 2 / 3 of 18，ambiguous 2 / 0 / 0 of 7；judge_hard 7 / 7 / 7，trap 1 / 1 / 1 不变。配对翻转（hard）：seq 对而 pointwise 错 9 题，pointwise 对而 seq 错 16 题。
 
-结论：位置绑定拓扑在 hard 层高 6～7 个点（27.9 → 34.2 / 35.1），达到发布版（Exp 010，18.6 万条 + GLiClass 初始化 + 1024 token）的水平 34.2；提升集中在 long_policy 和 tradeoff 这类候选是长句、需要逐个对照 state 的题型。easy 层低 2 题、standard 层低 7～10 题（66.7 → 52.8 / 56.9），全部合计 seq 仍高 0.4～2.2 个点；111 题的区间 ±9 点，单 seed，只能读作方向。ambiguous（0/7）是 pointwise 的结构性弱项："none of the above / 需要澄清" 这种选项的正确性依赖其他选项，IIA 假设在此不成立。
+结论（后被 Exp 019 修正，见下）：位置绑定拓扑在 hard 层高 6～7 个点（27.9 → 34.2 / 35.1），达到发布版（Exp 010，18.6 万条 + GLiClass 初始化 + 1024 token）的水平 34.2；提升集中在 long_policy 和 tradeoff 这类候选是长句、需要逐个对照 state 的题型。easy 层低 2 题、standard 层低 7～10 题（66.7 → 52.8 / 56.9），全部合计 seq 仍高 0.4～2.2 个点；111 题的区间 ±9 点，单 seed，只能读作方向。ambiguous（0/7）是 pointwise 的结构性弱项："none of the above / 需要澄清" 这种选项的正确性依赖其他选项，IIA 假设在此不成立。
+
+## Exp 019：发布配方（Exp 010：v0.5、GLiClass 初始化、1024 token、18.6 万条）下的 set / pointwise（单 seed，w_perm 0）
+
+| 模型 | JevBench easy / standard / hard | v0.5 test | v0.1 回归 | banking77 K=77（cov@5%） | clinc150 K=150（cov@5%） | typed-decisions 混合 acc / Brier |
+|---|---|---|---|---|---|---|
+| Exp 010 seq（发布版） | 48/48 / 0.611 / **0.342** (38/111) | 0.834 | 0.875 | 0.758 (0.51) | 0.865 (0.82) | 0.666 / 0.109 |
+| Exp 019 set | 48/48 / 0.611 / 0.306 (34/111) | 0.835 | 0.877 | **0.783 (0.56)** | **0.896 (0.86)** | 0.664 / 0.110 |
+| Exp 019 pointwise | 47/48 / **0.681** / 0.324 (36/111) | 0.831 | 0.873 | 0.779 (0.55) | 0.889 (0.86) | 0.650 / 0.111 |
+
+hard 层按题型（seq / set / pointwise）：temporal_numeric 5 / 6 / 8 of 15，trap 3 / 4 / 5 of 8，adversarial 4 / 5 / 5 of 6 上升；long_policy 5 / 2 / 3 of 19，tradeoff 3 / 2 / 1 of 6，probability 6 / 4 / 5 of 10 下降。配对翻转（hard，对 Exp 010）：set 赢 9 输 13，pointwise 赢 11 输 13。
+
+结论：
+- **Stage 0 上 hard 层 +6～7 点的信号在发布配方下没有复现**：set 30.6、pointwise 32.4，对 seq 的 34.2 都在 111 题 ±9 点的区间内，翻转基本对称。Stage 0 那次是 seq 对照恰好偏弱（27.9，比 Exp 001 同配置的 26.1 也只高 2 题），不是拓扑的效应。JevBench hard 层的平台结论（33～35%）不变，再增一个证据。
+- 拓扑带来的收益仍在它该在的地方：全标签集一次前向 banking77 +2.5 点、clinc150 +3.1 点（在已经 30% 全集渲染的基础上），cov@5% 各 +5 和 +4；分布内和 v0.1 回归持平；typed-decisions 混合模式持平（set）或 −1.6 点（pointwise）。
+- pointwise 在 standard 层 +5 题（0.681），set 持平；两者在 hard 层的题型分布互有输赢。
+- 对发布的含义：set 拓扑是与 seq 等价或更好的默认（全标签集更好、不需要换序 KL、训练省 45%），但不构成 JevBench 分数上的升级理由。v0.2 若发布，动机是结构（等变、外推、成本），不是分数。
