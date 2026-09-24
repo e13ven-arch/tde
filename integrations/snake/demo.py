@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Live Snake demo: the model plays game after game and every move streams to a web page.
 
-    PYTHONPATH=. python -m integrations.snake.demo --model runs/snake_bfs_v1    # then open http://localhost:8765
+    PYTHONPATH=. python -m integrations.snake.demo --model release/tde-general-v0.2    # then open http://localhost:8765
 
 Each move is the model's top choice over the board text, with the anti-trap shield of integrations.snake.play (a move
 that would cut the head off from its tail gives way to the model's next choice). Games run on the laya-mlx board
@@ -54,6 +54,7 @@ def play_forever(args, feed: Feed):
                                         marker="mask", max_total=1024))
     model = load_joint(f"{args.model}/model.safetensors")
     w, h, length = map(int, args.board.split("x"))
+    name = Path(args.model).name
     latency, results, seed, n_game = deque(maxlen=300), [], args.seed, 0
     while True:
         g, vetoes, n_game = SnakeGame(w, h, length, seed), 0, n_game + 1
@@ -67,9 +68,9 @@ def play_forever(args, feed: Feed):
             done = not (g.alive and g.food is not None and g.steps < args.moves)
             if done:
                 results.append({"seed": seed, "score": g.score, "survived": g.alive})
-            feed.publish({"w": w, "h": h, "body": list(g.body), "food": g.food, "alive": g.alive, "done": done,
-                          "score": g.score, "step": g.steps, "moves": args.moves, "game": n_game, "seed": seed,
-                          "dirs": DIRS, "p": [round(float(x), 4) for x in p], "move": move, "veto": veto,
+            feed.publish({"model": name, "w": w, "h": h, "body": list(g.body), "food": g.food, "alive": g.alive,
+                          "done": done, "score": g.score, "step": g.steps, "moves": args.moves, "game": n_game,
+                          "seed": seed, "dirs": DIRS, "p": [round(float(x), 4) for x in p], "move": move, "veto": veto,
                           "vetoes": vetoes, "ms": round(latency[-1], 1), "p50": round(statistics.median(latency), 1),
                           "results": results[-10:]})
             if args.speed:
@@ -111,7 +112,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", default="runs/snake_bfs_v1", help="run dir with model.safetensors and tokenizer/")
+    ap.add_argument("--model", default="release/tde-general-v0.2", help="dir with model.safetensors and tokenizer/")
     ap.add_argument("--board", default="24x16x6", help="WxHxInitialLength")
     ap.add_argument("--moves", type=int, default=600, help="moves per game")
     ap.add_argument("--speed", type=float, default=20, help="moves per second shown; 0 = as fast as the model runs")

@@ -1,0 +1,13 @@
+{
+  "name": "tde-general-v0.2",
+  "init": "tdelab/tde-general-v0.1",
+  "source_run": "runs/snake_bfs_v1",
+  "readout": "joint",
+  "backbone_init": "answerdotai/ModernBERT-base",
+  "params": 150208513,
+  "files": {
+    "model.safetensors": "a4be462f8157eb7d45916c430deb33bc555abbcace48958f2ff5d57f01a0fe7a",
+    "config.json": "cb00bd64b0bb7be9ce0103d9c8733ea3a6a0012ba15e477fd70b0ef90310b567",
+    "best.pt": "c5735d26bb58710bcd6bc6da2ec4ef0c3d13ed80ce4db638def6090dea13c791"
+  }
+}
