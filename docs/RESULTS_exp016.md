@@ -94,4 +94,4 @@ typed-decisions 零样本（2,000 题，未配对检验）：seq 37.5%，pointwi
 
 hard 层按题型（seq / pointwise / set）：long_policy 3 / 8 / 8 of 19，tradeoff 3 / 5 / 5 of 6，temporal_numeric 3 / 5 / 4 of 15，probability 4 / 5 / 6 of 10，routing_hard 1 / 2 / 3 of 5；multi_hop 4 / 2 / 3 of 18，ambiguous 2 / 0 / 0 of 7；judge_hard 7 / 7 / 7，trap 1 / 1 / 1 不变。配对翻转（hard）：seq 对而 pointwise 错 9 题，pointwise 对而 seq 错 16 题。
 
-结论：位置绑定拓扑在 hard 层高 6～7 个点（27.9 → 34.2 / 35.1），达到发布版（Exp 010，18.6 万条 + GLiClass 初始化 + 1024 token）的水平 34.2；提升集中在 long_policy 和 tradeoff 这类候选是长句、需要逐个对照 state 的题型。easy 层低 2 题、standard 层低 5～6 题，全部合计 seq 仍高 0.4～2.2 个点；111 题的区间 ±9 点，单 seed，只能读作方向。ambiguous（0/7）是 pointwise 的结构性弱项："none of the above / 需要澄清" 这种选项的正确性依赖其他选项，IIA 假设在此不成立。
+结论：位置绑定拓扑在 hard 层高 6～7 个点（27.9 → 34.2 / 35.1），达到发布版（Exp 010，18.6 万条 + GLiClass 初始化 + 1024 token）的水平 34.2；提升集中在 long_policy 和 tradeoff 这类候选是长句、需要逐个对照 state 的题型。easy 层低 2 题、standard 层低 7～10 题（66.7 → 52.8 / 56.9），全部合计 seq 仍高 0.4～2.2 个点；111 题的区间 ±9 点，单 seed，只能读作方向。ambiguous（0/7）是 pointwise 的结构性弱项："none of the above / 需要澄清" 这种选项的正确性依赖其他选项，IIA 假设在此不成立。
