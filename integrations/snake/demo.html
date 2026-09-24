@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TDE Snake</title>
+<style>
+  :root {
+    --bg: #f5f1ea; --panel: #fffdf9; --line: #e7e0d4; --grid: #fbf8f2; --dot: #e3dccf;
+    --text: #1d2230; --muted: #6f7482; --snake: #4f46e5; --snake-tail: #a5b4fc; --head: #312e81;
+    --eye: #fffdf9; --food: #f97316; --veto: #db2777; --bar: #efe9df;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 14px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; }
+  main { max-width: 1080px; margin: 0 auto; padding: 28px 16px; display: grid;
+         grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+  header { grid-column: 1 / -1; }
+  h1 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: -0.01em; }
+  .sub { margin: 4px 0 0; color: var(--muted); }
+  .board { position: relative; }
+  canvas { display: block; width: 100%; height: auto; border-radius: 12px; background: var(--grid);
+           border: 1px solid var(--line); }
+  .over { position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+          font-size: 20px; font-weight: 600; background: rgba(245, 241, 234, .72); border-radius: 12px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .score { font-size: 44px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+  .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  .row { display: flex; justify-content: space-between; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .sep { height: 1px; background: var(--line); margin: 14px 0; }
+  .bar { display: grid; grid-template-columns: 44px 1fr 48px; align-items: center; gap: 8px; margin: 7px 0; }
+  .track { height: 10px; background: var(--bar); border-radius: 5px; overflow: hidden; }
+  .fill { height: 100%; width: 0; background: var(--muted); border-radius: 5px; transition: width .08s linear; }
+  .bar.chosen .fill { background: var(--snake); }
+  .bar.chosen .name { color: var(--snake); font-weight: 600; }
+  .bar.vetoed .fill { background: var(--veto); }
+  .bar.vetoed .name { color: var(--veto); text-decoration: line-through; }
+  .pct { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .shield { color: var(--veto); font-size: 12px; min-height: 18px; margin-top: 4px; }
+  .games { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { padding: 2px 8px; border-radius: 999px; background: var(--bar); font-variant-numeric: tabular-nums; }
+  .chip.died { color: var(--veto); }
+  .note { color: var(--muted); font-size: 12px; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>TDE plays Snake</h1>
+    <p class="sub">A 150M ModernBERT decision model reads the board as text and scores four moves. Running with MLX on this Mac.</p>
+  </header>
+  <div class="board">
+    <canvas id="board" width="672" height="448"></canvas>
+    <div class="over" id="over"></div>
+  </div>
+  <aside class="panel">
+    <div class="label">Score</div>
+    <div class="score" id="score">–</div>
+    <div class="row"><span>Move</span><span id="step">loading model…</span></div>
+    <div class="row"><span>Game</span><span id="game">–</span></div>
+    <div class="row"><span>Model latency</span><span id="lat">–</span></div>
+    <div class="sep"></div>
+    <div class="label">Model's move probabilities</div>
+    <div id="bars"></div>
+    <div class="shield" id="shield"></div>
+    <div class="sep"></div>
+    <div class="label">Recent games (600 moves each)</div>
+    <div class="games" id="games"></div>
+    <div class="note">Anti-trap shield: a move that would cut the head off from its tail goes to the model's next choice.</div>
+  </aside>
+</main>
+<script>
+const cv = document.getElementById("board"), ctx = cv.getContext("2d");
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C = { grid: css("--grid"), dot: css("--dot"), food: css("--food"), head: css("--head"),
+            snake: css("--snake"), tail: css("--snake-tail"), eye: css("--eye") };
+const $ = id => document.getElementById(id);
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const mix = (a, b, t) => "rgb(" + hex(a).map((v, i) => Math.round(v + (hex(b)[i] - v) * t)).join(",") + ")";
+let bars = null;
+
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fill(); }
+
+function draw(f) {
+  const dpr = window.devicePixelRatio || 1, cell = 28, W = f.w * cell, H = f.h * cell;
+  if (cv.width !== W * dpr) { cv.width = W * dpr; cv.height = H * dpr; }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = C.grid; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = C.dot;
+  for (let y = 0; y < f.h; y++) for (let x = 0; x < f.w; x++) ctx.fillRect(x * cell + 13, y * cell + 13, 2, 2);
+  if (f.food) {
+    ctx.fillStyle = C.food; ctx.beginPath();
+    ctx.arc(f.food[0] * cell + cell / 2, f.food[1] * cell + cell / 2, cell * 0.32, 0, Math.PI * 2); ctx.fill();
+  }
+  const n = f.body.length;
+  for (let i = n - 1; i >= 0; i--) {
+    const [x, y] = f.body[i];
+    ctx.fillStyle = i === 0 ? C.head : mix(C.snake, C.tail, i / Math.max(1, n - 1));
+    rr(x * cell + 2, y * cell + 2, cell - 4, cell - 4, 7);
+  }
+  const [hx, hy] = f.body[0], d = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[f.move];
+  ctx.fillStyle = C.eye;
+  for (const s of [-1, 1]) {
+    const ex = hx * cell + cell / 2 + d[0] * 5 + (d[1] ? s * 5 : 0), ey = hy * cell + cell / 2 + d[1] * 5 + (d[0] ? s * 5 : 0);
+    ctx.beginPath(); ctx.arc(ex, ey, 2.2, 0, Math.PI * 2); ctx.fill();
+  }
+  const over = $("over");
+  over.style.display = f.done ? "flex" : "none";
+  over.textContent = f.done ? (f.alive ? `Survived ${f.moves} moves · ${f.score} food` : `Game over · ${f.score} food`) : "";
+}
+
+function panel(f) {
+  $("score").textContent = f.score;
+  $("step").textContent = `${f.step} / ${f.moves}`;
+  $("game").textContent = `#${f.game} · seed ${f.seed}`;
+  $("lat").textContent = `${f.ms.toFixed(0)} ms (p50 ${f.p50.toFixed(0)})`;
+  if (!bars) {
+    $("bars").innerHTML = f.dirs.map(d =>
+      `<div class="bar" id="b-${d}"><span class="name">${d}</span><div class="track"><div class="fill"></div></div><span class="pct"></span></div>`).join("");
+    bars = true;
+  }
+  const top = f.dirs[f.p.indexOf(Math.max(...f.p))];
+  f.dirs.forEach((d, i) => {
+    const el = $("b-" + d);
+    el.querySelector(".fill").style.width = (100 * f.p[i]).toFixed(1) + "%";
+    el.querySelector(".pct").textContent = (100 * f.p[i]).toFixed(0) + "%";
+    el.classList.toggle("chosen", d === f.move);
+    el.classList.toggle("vetoed", f.veto && d === top);
+  });
+  $("shield").textContent = f.veto ? `Shield: ${top} would trap the snake, took ${f.move}` : (f.vetoes ? `Shield vetoes this game: ${f.vetoes}` : "");
+  $("games").innerHTML = f.results.slice().reverse().map(r =>
+    `<span class="chip${r.survived ? "" : " died"}" title="seed ${r.seed}">${r.score}${r.survived ? "" : " ✕"}</span>`).join("");
+}
+
+const es = new EventSource("/events");
+es.onmessage = e => { const f = JSON.parse(e.data); draw(f); panel(f); };
+</script>
+</body>
+</html>
