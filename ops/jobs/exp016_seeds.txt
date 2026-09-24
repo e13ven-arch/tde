@@ -1,0 +1,7 @@
+# Exp 016 seed replication (seeds 1,2; seed 0 = original runs). config|readout|out_dir|extra
+configs/exp016_topology.yaml|joint|runs/exp016_pointwise_s1|--topology pointwise --seed 1
+configs/exp016_topology.yaml|joint|runs/exp016_set_s1|--topology set --seed 1
+configs/exp016_topology.yaml|joint|runs/exp016_seq_s1|--topology seq --seed 1
+configs/exp016_topology.yaml|joint|runs/exp016_pointwise_s2|--topology pointwise --seed 2
+configs/exp016_topology.yaml|joint|runs/exp016_set_s2|--topology set --seed 2
+configs/exp016_topology.yaml|joint|runs/exp016_seq_s2|--topology seq --seed 2
