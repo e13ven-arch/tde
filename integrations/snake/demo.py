@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Live Snake demo: the model plays game after game and every move streams to a web page.
 
-    PYTHONPATH=. python -m integrations.snake.demo --model release/tde-general-v0.2    # then open http://localhost:8765
+    PYTHONPATH=. python -m integrations.snake.demo    # then open http://localhost:8765
 
 Each move is the model's top choice over the board text, with the anti-trap shield of integrations.snake.play (a move
 that would cut the head off from its tail gives way to the model's next choice). Games run on the laya-mlx board
@@ -43,6 +43,14 @@ class Feed:
             return self.n, self.frame
 
 
+def model_dir(model: str) -> str:
+    """A local folder with the weights as is; a Hugging Face id (tdelab/tde-general-v0.2) is fetched into the cache."""
+    if (Path(model) / "model.safetensors").exists():
+        return model
+    from huggingface_hub import snapshot_download
+    return snapshot_download(model, allow_patterns=["model.safetensors", "config.json", "tokenizer/*"])
+
+
 def play_forever(args, feed: Feed):
     from transformers import AutoTokenizer
 
@@ -50,9 +58,10 @@ def play_forever(args, feed: Feed):
     from tde.mlx.model import load_joint
     from tde.model.encoding import DecisionTokenizer
     mx.set_cache_limit(1 << 30)
-    enc = FastEncoder(DecisionTokenizer(AutoTokenizer.from_pretrained(f"{args.model}/tokenizer"), max_state_tokens=480,
+    path = model_dir(args.model)
+    enc = FastEncoder(DecisionTokenizer(AutoTokenizer.from_pretrained(f"{path}/tokenizer"), max_state_tokens=480,
                                         marker="mask", max_total=1024))
-    model = load_joint(f"{args.model}/model.safetensors")
+    model = load_joint(f"{path}/model.safetensors")
     w, h, length = map(int, args.board.split("x"))
     name = Path(args.model).name
     latency, results, seed, n_game = deque(maxlen=300), [], args.seed, 0
@@ -112,7 +121,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", default="release/tde-general-v0.2", help="dir with model.safetensors and tokenizer/")
+    ap.add_argument("--model", default="tdelab/tde-general-v0.2", help="Hugging Face id or a local release folder")
     ap.add_argument("--board", default="24x16x6", help="WxHxInitialLength")
     ap.add_argument("--moves", type=int, default=600, help="moves per game")
     ap.add_argument("--speed", type=float, default=20, help="moves per second shown; 0 = as fast as the model runs")

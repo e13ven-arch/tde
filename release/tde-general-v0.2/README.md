@@ -25,7 +25,8 @@ head can no longer reach its tail and takes the model's next choice instead.
 | laya-mlx as published (planner features in the options, Hamiltonian-cycle shield) | 20 · 24 · 23 · 16 (mean 20.75) | 4 of 4 |
 
 About 12 ms per move with MLX on an M5 Pro. A live page where the model plays game after game:
-`python -m integrations.snake.demo --model path/to/tde-general-v0.2` in the [code repository](https://github.com/e13ven-arch/tde).
+`python -m integrations.snake.demo` in the [code repository](https://github.com/e13ven-arch/tde) (tutorial:
+[integrations/snake](https://github.com/e13ven-arch/tde/tree/main/integrations/snake)).
 
 ## General decisions
 
@@ -47,7 +48,7 @@ with MLX on one Mac in about 80 minutes (`integrations/snake/build_sft.py`, then
 ```python
 # pip install git+https://github.com/e13ven-arch/tde   (package name: tde)
 from tde.inference import Decider
-d = Decider.from_run("path/to/tde-general-v0.2")
+d = Decider.from_run("tdelab/tde-general-v0.2")   # or a local release folder
 d.decide(board_text, {"type": "choice", "instructions": "Which way should the snake move?",
                       "criteria": {m: m for m in ("up", "down", "left", "right")}})
 ```

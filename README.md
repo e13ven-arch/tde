@@ -8,17 +8,23 @@ A research codebase for **non-autoregressive, calibrated decision models**: give
 | `choice` | 2–255 named options | distribution |
 | `score` | 2–10 ordered levels | distribution + expected level |
 
+### Demo: TDE plays Snake
+
+![tde-general-v0.2 playing Snake](integrations/snake/demo.gif)
+
+[`tde-general-v0.2`](https://huggingface.co/tdelab/tde-general-v0.2) reads the board as text and scores up / down / left / right. With an anti-trap shield it survives all 600 moves of the laya-mlx protocol at 38.75 food per game (laya-mlx: 20.75), about 12 ms per move with MLX on a Mac. Run `python -m integrations.snake.demo` and open http://localhost:8765. Tutorial (中文), from data to a live page on one Mac: [integrations/snake](integrations/snake/README.md).
+
 This is a **matched-parameter study**, not a new architecture: encoder + candidate scorer designs already exist (GLiClass, TARS, openJev-verdict-2.0, Laya). What this repo adds is a controlled comparison of readout designs, encoder vs decoder at matched size and data, calibration objectives measured against human label distributions, and OOD / few-shot curves with pre-registered endpoints. See [docs/PLAN_v0.1.md](docs/PLAN_v0.1.md).
 
 ## Layout
 
 ```
-tde/              model, data pipeline, losses, calibration, evaluation, inference API
+tde/              model, data pipeline, losses, calibration, evaluation, inference API; tde/mlx: MLX trainer
 scripts/          build_data.py · train.py · evaluate.py · run_jevbench.py · export_release.py · …
 configs/release/  the two released models' training configs (general = Exp 010, specialist = Exp 014)
 configs/          one YAML per experiment (ablations documented in docs/RESULTS_*.md)
-integrations/     JevBench in-process adapter and tests
-release/          model cards of tdelab/tde-general-v0.1 and tdelab/tde-typed-specialist-v0.1 (weights on Hugging Face)
+integrations/     JevBench in-process adapter and tests; snake/: Snake demo, trainers and tutorial
+release/          model cards of the tdelab/tde-* models (weights on Hugging Face)
 tests/            split determinism, template leakage, metrics, model shapes, losses, synthetic data
 docs/             plan, data inventories, results, release record
 ops/              the authors' training-host scripts (not needed to use the model)
@@ -31,6 +37,7 @@ data/ runs/       generated (git-ignored)
 |---|---|---|---|
 | tde-general-v0.1 | `tdelab/tde-general-v0.1` | `configs/release/tde-general-v0.1.yaml` | zero-shot typed decisions (JevBench-style workloads) |
 | tde-typed-specialist-v0.1 | `tdelab/tde-typed-specialist-v0.1` | `configs/release/tde-typed-specialist-v0.1.yaml` | the four typed-decisions workflows (specialist mode) |
+| tde-general-v0.2 | `tdelab/tde-general-v0.2` | [Snake tutorial](integrations/snake/README.md) | v0.1 fine-tuned to also play Snake (general accuracy 86.4 vs 87.4) |
 
 ```python
 from tde.inference import Decider
