@@ -1,0 +1,3 @@
+# Exp 019 — production recipe (Exp 010: v0.5, GLiClass init, 1024-token state) under the tied topologies. perm-KL is identically zero there, so w_perm 0 (saves the second forward). config|readout|out_dir|extra
+configs/exp010_fullk_v05.yaml|joint|runs/exp019_set_v05|--topology set --w_perm 0
+configs/exp010_fullk_v05.yaml|joint|runs/exp019_pointwise_v05|--topology pointwise --w_perm 0
