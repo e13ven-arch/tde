@@ -1,6 +1,6 @@
 """Greedy Snake play and the evaluation protocols, for MLX joint models and the BFS teacher.
 
-    python -m integrations.snake.play runs/snake_rlcd_v2/24x16 runs/snake_bfs_v1 bfs mc --laya
+    python -m integrations.snake.play release/tde-general-v0.2 runs/snake_rlcd_v4/12x12 bfs mc --laya
 
 A policy maps a list of games to move probabilities [n, 4]; play is greedy (top-1). Besides run directories, 'bfs' is
 the BFS teacher and 'mc' the flat Monte Carlo player that makes the RLCD targets (16 random playouts per move). With

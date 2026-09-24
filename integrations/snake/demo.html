@@ -48,7 +48,7 @@
 <main>
   <header>
     <h1>TDE plays Snake</h1>
-    <p class="sub">A 150M ModernBERT decision model reads the board as text and scores four moves. Running with MLX on this Mac.</p>
+    <p class="sub"><b id="model">tde-general-v0.2</b> · a 150M decision model reads the board as text and scores four moves · MLX on this Mac</p>
   </header>
   <div class="board">
     <canvas id="board" width="672" height="448"></canvas>
@@ -111,6 +111,7 @@ function draw(f) {
 }
 
 function panel(f) {
+  $("model").textContent = f.model;
   $("score").textContent = f.score;
   $("step").textContent = `${f.step} / ${f.moves}`;
   $("game").textContent = `#${f.game} · seed ${f.seed}`;

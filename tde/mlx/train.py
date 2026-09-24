@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Train the joint readout with MLX on Apple GPUs (about 2x the PyTorch MPS throughput for ModernBERT-base).
 
-    python -m tde.mlx.train --data_dir data/snake/bfs_v1 --init release/tde-general-v0.1 --out_dir runs/snake_bfs_v1 \
+    python -m tde.mlx.train --data_dir data/snake/bfs_v1 --init release/tde-general-v0.1 --out_dir runs/tde-general-v0.2 \
         --max_state_tokens 480 --epochs 2
 
 Mirrors tde/train.py for the joint readout (topology 'seq', marker 'mask', pool 'marker+span', CE loss): the same
