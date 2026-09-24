@@ -81,3 +81,17 @@ typed-decisions 零样本（2,000 题，未配对检验）：seq 37.5%，pointwi
 - pointwise 的分块推理与一次前向在三个 seed 上都相等（0.759 vs 0.758），set 也只差 2.3 个点；seq 靠分块锦标赛能追回到 0.738，仍低 pointwise 2.0 个点、NLL 高 0.11，且方差内不重叠。
 - 分布内三臂无差异（0.856～0.857，差距小于 seed 方差），拓扑约束不花准确率。
 - 置换等变与 IIA 的探针在三个 seed 上都成立（pointwise 去一候选 TV 0.001，是数值噪声量级）。
+
+## JevBench 公开题上的候选拓扑三臂（Exp 016 checkpoint，Stage 0 规模，seed 0，本机 MPS，原生概率，无温度）
+
+同一 Stage 0 配置下 Exp 001 的 seq 模型此前为 easy 97.9 / standard 61.1 / hard 26.1。三臂只改候选排布。
+
+| 臂 | easy (48) | standard (72) | hard (111) | 全部 (231) |
+|---|---|---|---|---|
+| seq | 0.958 | 0.667 | 0.279 (31/111) | 0.541 |
+| pointwise | 0.917 | 0.528 | 0.342 (38/111) | 0.519 |
+| set | 0.917 | 0.569 | 0.351 (39/111) | 0.537 |
+
+hard 层按题型（seq / pointwise / set）：long_policy 3 / 8 / 8 of 19，tradeoff 3 / 5 / 5 of 6，temporal_numeric 3 / 5 / 4 of 15，probability 4 / 5 / 6 of 10，routing_hard 1 / 2 / 3 of 5；multi_hop 4 / 2 / 3 of 18，ambiguous 2 / 0 / 0 of 7；judge_hard 7 / 7 / 7，trap 1 / 1 / 1 不变。配对翻转（hard）：seq 对而 pointwise 错 9 题，pointwise 对而 seq 错 16 题。
+
+结论：位置绑定拓扑在 hard 层高 6～7 个点（27.9 → 34.2 / 35.1），达到发布版（Exp 010，18.6 万条 + GLiClass 初始化 + 1024 token）的水平 34.2；提升集中在 long_policy 和 tradeoff 这类候选是长句、需要逐个对照 state 的题型。easy 层低 2 题、standard 层低 5～6 题，全部合计 seq 仍高 0.4～2.2 个点；111 题的区间 ±9 点，单 seed，只能读作方向。ambiguous（0/7）是 pointwise 的结构性弱项："none of the above / 需要澄清" 这种选项的正确性依赖其他选项，IIA 假设在此不成立。
