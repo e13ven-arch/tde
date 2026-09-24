@@ -1,5 +1,7 @@
 # 论文骨架（工作题目）
 
+> 正文英文草稿：`docs/paper/main.md`（v0.1，2026-09-24）。本文件保留为大纲与待办。
+
 **Reading Decisions out of a Masked Language Model: Readout Position, Candidate Topology, and Objective in a 150M Typed-Decision Encoder**
 
 一句话主张：把预训练编码器变成「state + question + candidates → 校准分布」的决策模型时，起决定作用的是读出位置，而不是损失函数或额外结构；数据能买到分布内与任务级迁移，买不到需要世界知识的推理。
