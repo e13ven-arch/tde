@@ -226,7 +226,7 @@ Accuracy is on par with the best open 150M model (its 77.1 lies inside our inter
 
 **JevBench, public items, self-run.** The released general model scores 100% easy, 65.3% standard and 35.1% hard on the 231 public items (Exp 008; the v0.5 model, Exp 010, scores 100 / 61.1 / 34.2 with Brier 0.552). These are self-run numbers with the released adapter; the official score, which adds 133 held-out and 308 sealed items and weights speed and cost, was requested through the benchmark's submission process and is pending. Under the benchmark's current scoring, a small public-to-sealed gap is rewarded; we make no prediction.
 
-**Cost.** One decision with K ≤ 12 and a 448-token state takes one encoder pass of ≈ 600 tokens; on the 8 GB laptop GPU used for all training, evaluation throughput is ≈ 60 decisions/s at batch 32, and the full-label clinc150 query (150 candidates, ≈ 4,000 tokens) is a single pass under the tied topologies.
+**Cost.** One decision with K ≤ 12 and a 448-token state is one encoder pass of ≈ 600 tokens, and the full-label clinc150 query (150 candidates, ≈ 4,000 tokens) is a single pass under the tied topologies. Latency and throughput were not measured in a controlled setting and are left to the benchmark's official run.
 
 ## 6 Analysis
 
