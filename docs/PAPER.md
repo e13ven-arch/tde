@@ -36,9 +36,9 @@
 - 5.1 读出位置（表 2：2×2 标记 × span，3 seeds，ModernBERT；DeBERTa 复核）→ 已有：Exp 017（[MASK] 0.865±0.002 vs 新增标记 0.600±0.015；span 池化无影响）；Exp 018：DeBERTa-v3-base 上新增标记 0.877 vs [MASK] 0.882，效应依赖骨干；DeBERTa 整体高 ModernBERT 1.9 点。
 - 5.2 读出结构（表 3：joint / branch / bi-encoder，含训练成本）→ 已有：Exp 001。
 - 5.3 目标函数（表 4：五个 arm 的准确率、NLL、ECE、AURC、一致性、温度）→ 已有：Exp 003。
-- 5.4 候选拓扑与候选数（表 5：seq / pointwise / set 在 K≥77 全集与分布内的配对比较；一次前向 / 分块 / 锦标赛 × 训练 K 上限）→ 已有：Exp 016（单 seed，待 3 seeds）、Stage 1、Exp 006、010。
+- 5.4 候选拓扑与候选数（表 5：seq / pointwise / set 在 K≥77 全集与分布内的配对比较；一次前向 / 分块 / 锦标赛 × 训练 K 上限）→ 已有：Exp 016（3 seeds：pointwise 一次前向 0.759±0.006 vs seq 0.579±0.018；分布内无差异）、Stage 1、Exp 006、010。
 - 5.5 数据能买到什么（图 2：JevBench hard 与 typed-decisions 随数据版本的曲线；表 6：LegalBench 留出任务）→ 已有：Exp 005–015。
-- 5.6 外部对照（表 7：typed-decisions 专家模式 vs Jev / verdict；JevBench 公开题与官方分）→ 待：官方分。
+- 5.6 外部对照（表 7：typed-decisions 专家模式 vs Jev / verdict；JevBench 534 公开题自测，标明自测；官方分若在投稿前到达则补，否则脚注说明排队中）→ 已有，不再阻塞。
 
 ## 6 分析
 - 读出位置的机制：[MASK] 位置表示与候选 span 的相似度分析；新增标记的学习曲线（Mac 上 3,200 条 = v1 的 16,000 条）；新增标记 seed 方差大 10 倍（Exp 017），说明差距来自初始化而非容量；DeBERTa 上新增标记不失败（Exp 018），需要解释为什么 ModernBERT 的新 token 学不动（嵌入初始化尺度 / 无绝对位置 / 训练 token 数）。
@@ -54,5 +54,5 @@
 ## 待补实验（进行中）
 - ~~Exp 017~~ 完成，见 RESULTS_exp005.md。
 - ~~Exp 018~~ 完成，见 RESULTS_exp005.md（1 seed）。
-- Exp 016 的 3 seeds 复核（pointwise / set / seq），以及 pointwise / set 的 typed-decisions 专家阶段（选项经设计时互看是否必要）。
+- ~~Exp 016 的 3 seeds 复核~~ 完成，见 RESULTS_exp016.md。pointwise / set 的 typed-decisions 专家阶段（选项经设计时互看是否必要）仍可选。
 - JevBench 官方综合分（issue #39 排队中）。
