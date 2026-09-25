@@ -1,0 +1,12 @@
+{
+  "name": "tde-general-large-v0.1",
+  "source_run": "runs/host/exp020_large_set_v07",
+  "readout": "joint",
+  "backbone_init": "knowledgator/gliclass-modern-large-v3.0 (encoder); architecture answerdotai/ModernBERT-large",
+  "params": 396898305,
+  "files": {
+    "model.safetensors": "357346605a966d6e4282d6fac814c5006b34726c0056c5685cb64de9c20e8324",
+    "config.json": "df151998d7d3d1c876a37da8abe00b8e9cc9b1462e505cdd1b6c4b2d9e7e8554",
+    "best.pt": "f2801b81865648e6b5f6e984cb77ed95e29aa6bb7051086095033b703a1850fd"
+  }
+}
