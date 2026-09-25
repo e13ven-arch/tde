@@ -1,0 +1,2 @@
+# Exp 021: base / set / v0.7 — data effect at the release size, run concurrently with Exp 020 on the same GPU. config|readout|out_dir|extra
+configs/exp010_fullk_v05.yaml|joint|runs/exp021_base_set_v07|--topology set --w_perm 0 --data_dir data/v0.7 --batch_size 32 --grad_accum 1 --gradient_checkpointing false
