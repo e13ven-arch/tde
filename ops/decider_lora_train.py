@@ -24,7 +24,9 @@ def main():
     ap.add_argument("--max_tokens", type=int, default=16384); ap.add_argument("--accum", type=int, default=2); ap.add_argument("--max_ctx", type=int, default=4096)
     ap.add_argument("--max_options", type=int, default=255); ap.add_argument("--none_prob", type=float, default=0.1); ap.add_argument("--schema_first_prob", type=float, default=0.5)
     ap.add_argument("--eval_every", type=int, default=400); ap.add_argument("--eval_limit", type=int, default=100); ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--grad_ckpt", type=int, default=0)
+    ap.add_argument("--grad_ckpt", type=int, default=0, help="1 = checkpoint every micro-batch; 0 = only micro-batches longer than --ckpt_long_T")
+    ap.add_argument("--ckpt_long_T", type=int, default=3072, help="with --grad_ckpt 0, enable checkpointing only when the padded length exceeds this")
+    ap.add_argument("--items_cache", default=None, help="pickle of tokenised items; reused when present (skips the 9-minute tokenisation on restarts)")
     a = ap.parse_args(); os.makedirs(a.out, exist_ok=True)
     logf = open(f"{a.out}/train.log", "a")
     def log(*s):
@@ -32,28 +34,44 @@ def main():
     log("[args]", json.dumps(vars(a)))
     torch.manual_seed(a.seed); rng = random.Random(a.seed)
     train, evals = D.load_cache(a.data); evals_small = {k: v[:a.eval_limit] for k, v in evals.items()}
-    model = DecisionModel(a.model, grad_ckpt=bool(a.grad_ckpt)).cuda(); tok = model.tok
+    model = DecisionModel(a.model, grad_ckpt=True).cuda(); tok = model.tok
+    model.lm.gradient_checkpointing_disable(); model.lm.config.use_cache = False
+    def set_ckpt(on):
+        (model.lm.gradient_checkpointing_enable if on else model.lm.gradient_checkpointing_disable)()
     for p in model.parameters(): p.requires_grad_(False)
     cfg = LoraConfig(r=a.r, lora_alpha=a.alpha, lora_dropout=a.dropout, target_modules="all-linear", bias="none")
     model.lm = inject_adapter_in_model(cfg, model.lm)          # in place: DecisionModel.forward keeps working
     lora_params = [p for n, p in model.named_parameters() if "lora_" in n]
     for p in lora_params: p.data = p.data.float(); p.requires_grad_(True)
     n_lora = sum(p.numel() for p in lora_params); log(f"[lora] r={a.r} alpha={a.alpha} trainable {n_lora/1e6:.1f}M params (fp32), base frozen bf16")
-    items = make_items(train, tok, rng, a.max_ctx, a.none_prob, a.max_options, a.schema_first_prob)
+    import pickle
+    if a.items_cache and os.path.exists(a.items_cache):
+        items = pickle.load(open(a.items_cache, "rb")); log(f"[data] loaded {len(items)} tokenised items from {a.items_cache}")
+    else:
+        items = make_items(train, tok, rng, a.max_ctx, a.none_prob, a.max_options, a.schema_first_prob)
+        if a.items_cache: pickle.dump(items, open(a.items_cache, "wb"))
     log(f"[data] {len(items)} items, {sum(len(it['ids']) for it in items)/1e6:.1f}M tokens")
-    opt = torch.optim.AdamW(lora_params, lr=a.lr, weight_decay=0.0, betas=(0.9, 0.95))
+    opt = torch.optim.AdamW(lora_params, lr=a.lr, weight_decay=0.0, betas=(0.9, 0.95), fused=True)
     steps_per_epoch = math.ceil(len(batches_by_tokens(items, a.max_tokens, random.Random(0))) / a.accum); total = int(steps_per_epoch * a.epochs)
     log(f"[sched] {steps_per_epoch} steps/epoch, {total} total")
     lr_at = lambda s: a.lr * s / a.warmup if s < a.warmup else a.lr * 0.5 * (1 + math.cos(math.pi * min(1.0, (s - a.warmup) / max(1, total - a.warmup))))
-    step, micro, ep, hist = 0, 0, 0, []; model.train(); t0 = time.time(); ce_acc, n_acc, t_last, tok_acc = 0.0, 0, t0, 0
+    step, micro, ep, hist = 0, 0, 0, []; n_oom = [0]; model.train(); t0 = time.time(); ce_acc, n_acc, t_last, tok_acc = 0.0, 0, t0, 0
     while step < total:
         for bidx in batches_by_tokens(items, a.max_tokens, rng):
             if step >= total: break
             b = collate([items[i] for i in bidx], tok.pad_token_id); b = {k: (v.cuda() if torch.is_tensor(v) else v) for k, v in b.items()}
-            with torch.autocast("cuda", dtype=torch.bfloat16):
-                logits = model(b)
-            loss, ce = loss_fn(logits.float(), b["golds"], b["nopts"])
-            (loss / a.accum).backward(); ce_acc += ce.item(); n_acc += 1; micro += 1; tok_acc += b["input_ids"].numel()
+            T = b["input_ids"].shape[1]; set_ckpt(bool(a.grad_ckpt) or T > a.ckpt_long_T)
+            for attempt in range(2):
+                try:
+                    with torch.autocast("cuda", dtype=torch.bfloat16):
+                        logits = model(b)
+                    loss, ce = loss_fn(logits.float(), b["golds"], b["nopts"])
+                    (loss / a.accum).backward(); break
+                except torch.OutOfMemoryError:
+                    if attempt == 1: raise
+                    logits = loss = None; torch.cuda.empty_cache(); set_ckpt(True); n_oom[0] += 1
+                    log(f"[oom] T={T} rows={b['input_ids'].shape[0]}: retrying this micro-batch with checkpointing (total {n_oom[0]})")
+            ce_acc += ce.item(); n_acc += 1; micro += 1; tok_acc += b["input_ids"].numel()
             if micro % a.accum == 0:
                 for g in opt.param_groups: g["lr"] = lr_at(step)
                 gn = torch.nn.utils.clip_grad_norm_(lora_params, 1.0); opt.step(); opt.zero_grad(set_to_none=True); step += 1
