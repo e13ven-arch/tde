@@ -11,5 +11,3 @@
 | 05 | 加了 HotpotQA，自身 96%，对目标零迁移 | 待写 | RESULTS_exp005.md Exp 009 / 015 |
 | 06 | 66% 的样本被截断，还以为是模型学不会 | 待写 | RESULTS_exp005.md Exp 005 |
 | 07 | 五种损失函数，温度全是 1.0：白折腾的一周 | 待写 | RESULTS_exp003.md |
-| 08 | 榜单排队三天没人理，原因是提交方式 | 待写 | RESULTS_jevbench.md |
-| 09 | pkill -f 把自己的 ssh 杀了三次 | 待写 | ops/ |
