@@ -52,3 +52,13 @@ hard 层按题型（起点 → 本次）：temporal_numeric 5 → 3 /15，tradeo
 
 ## 大混合（qwen_big_v1）配方
 Qwen3.5-4B + LoRA r64 / alpha 128，lr 1e-4，1 epoch，H100 无梯度检查点。数据 51.8 万条：decider 公开混合（delta 模式，`decider.data.mixture`，174 个任务）随机抽 50 万 + LegalBench 8 千 + typed-decisions 训练集 6 千 + synth_rubric 4 千；规则世界（policy / multihop / temporal）全部不用。
+
+## qwen_big_v1 结果（2026-09-26，H100，7,083 步，1.82 亿 token，5.6 小时）
+
+| 模型 | 公开 easy / standard / hard | 合计 | 代理集 acc | Brier | ECE |
+|---|---|---|---|---|---|
+| Qwen3.5-4B 原版 | 48 / 64 / 71 | 183 | 0.583 | 0.272 | 0.183 |
+| **qwen_big_v1** | 48 / 70 / 66 | 184 | **0.773** | **0.115** | 0.019 |
+| decider-4b v2.1 | 48 / 71 / 73 | 192 | 0.681 | 0.148 | 0.020 |
+
+hard 层按题型（原版 → 本次）：tradeoff 2 → 5，judge_hard 14 → 10（原版 14，decider 9），probability 5 → 3，temporal_numeric 4 → 3，multi_hop 11 → 13；配对修 14 坏 21（对 decider）。代理集大幅上升，但 typed-decisions 训练集（6 千条）在混合里，代理集对本模型是同一生成器的未见题，不是完全分布外；decider 混合是否含该集未知。权重：`tdelab/tde-checkpoints/runs/qwen_big_v1`。
