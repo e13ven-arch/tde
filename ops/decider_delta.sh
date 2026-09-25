@@ -14,12 +14,12 @@ export HF_HUB_DISABLE_PROGRESS_BARS=1 PYTHONUNBUFFERED=1 PYTORCH_CUDA_ALLOC_CONF
 SNAP=$(ls -d ~/.cache/huggingface/hub/models--Mapika--decider-4b/snapshots/*/ | head -1)
 cp -n "$SNAP/decider_config.json" "$OUT/model/" 2>/dev/null || true
 # serve and score
-DECIDER_MODEL="$OUT/model" setsid nohup .venv/bin/python -m uvicorn decider.serve:app --host 127.0.0.1 --port 8001 > "$OUT/serve.log" 2>&1 < /dev/null &
+DECIDER_MODEL="$OUT/model" setsid nohup .venv/bin/python -m uvicorn decider.serve:app --host 127.0.0.1 --port "${PORT:-8002}" > "$OUT/serve.log" 2>&1 < /dev/null &
 SP=$!
 for i in $(seq 1 120); do curl -sf -o /dev/null localhost:8001/health && break; sleep 5; done
 cd "$ROOT/jevbench" && rm -rf "$OUT/jevbench" && mkdir -p "$OUT/jevbench"
 "$ROOT/jev/.venv/bin/python" -m jevbench.cli run --tasks datasets/public/easy.jsonl,datasets/public/original.jsonl,datasets/public/hard.jsonl \
-    --adapter typesafe --endpoint http://127.0.0.1:8001 --model "$(basename "$OUT")" --key-env "" --cost-basis local_gpu_no_provider_tariff --reserve-usd 0 --cap-usd 1 \
+    --adapter typesafe --endpoint http://127.0.0.1:${PORT:-8002} --model "$(basename "$OUT")" --key-env "" --cost-basis local_gpu_no_provider_tariff --reserve-usd 0 --cap-usd 1 \
     --results "$OUT/jevbench/results.jsonl" --raw-dir "$OUT/jevbench/raw" --ledger "$OUT/jevbench/ledger.jsonl" 2>&1 | tail -1
 kill $SP 2>/dev/null || true; rm -rf "$OUT/jevbench/raw"
 "$ROOT/jev/.venv/bin/python" - "$OUT/jevbench/results.jsonl" <<'PY'
