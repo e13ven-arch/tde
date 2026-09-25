@@ -35,6 +35,10 @@ class TrainConfig:
     train_limit: int | None = None
     per_dataset_cap: int | None = None  # balance the mix: keep at most N training examples per dataset
     group_by_state: bool = False        # keep rewrites of the same source item adjacent so a batch shares states (branch/biencoder)
+    cache_encodings: bool = False       # tokenize the training set once up front instead of every step (costs RAM)
+    bucket_by_length: bool = False      # batch similar-length examples together to cut padding (ignored with group_by_state)
+    max_tokens: int | None = None       # token-budget batching: pack length-sorted examples until batch_size or max_tokens (rows x longest) is hit; joint only
+    compile: bool = False               # torch.compile the backbone
     eval_limit: int | None = 2000
     epochs: float = 1.0
     max_steps: int | None = None
@@ -98,6 +102,39 @@ def _param_groups(model, cfg: TrainConfig):
     return groups
 
 
+def _token_batches(order: list[int], lengths: list[int], cfg: TrainConfig, rng: random.Random) -> list[list[int]]:
+    """Length-sorted windows packed under a token budget: a batch holds at most batch_size rows and at most max_tokens
+    padded tokens (rows x longest row), so a 4k-token full-label item no longer drags 31 short rows up to its length."""
+    bs, budget = cfg.batch_size, cfg.max_tokens
+    out, window = [], bs * 64
+    for i in range(0, len(order), window):
+        w = sorted(order[i : i + window], key=lambda j: lengths[j])
+        cur: list[int] = []
+        for j in w:
+            longest = lengths[j]  # sorted ascending, so j is the longest in cur + [j]
+            if cur and (len(cur) >= bs or (len(cur) + 1) * longest > budget):
+                out.append(cur); cur = []
+            cur.append(j)
+        if cur:
+            out.append(cur)
+    rng.shuffle(out)
+    return out
+
+
+def _batches(order: list[int], examples: list[DecisionExample], cfg: TrainConfig, rng: random.Random, bucket: bool) -> list[list[int]]:
+    """Index batches in `order`; with `bucket`, sort windows of 64 batches by text length so each batch pads little."""
+    bs = cfg.batch_size
+    if not bucket:
+        return [order[i : i + bs] for i in range(0, len(order), bs)]
+    size = lambda j: len(examples[j].state) + sum(len(c.text()) for c in examples[j].candidates)
+    out = []
+    for i in range(0, len(order), bs * 64):
+        window = sorted(order[i : i + bs * 64], key=size)
+        out += [window[k : k + bs] for k in range(0, len(window), bs)]
+    rng.shuffle(out)
+    return out
+
+
 def _to(batch: dict, device: torch.device) -> dict:
     return {k: (v.to(device) if isinstance(v, torch.Tensor) else v) for k, v in batch.items()}
 
@@ -119,7 +156,7 @@ def predict(model, dtok, examples: list[DecisionExample], device: torch.device, 
     model.eval()
     mode = model.mode
     out: list[np.ndarray] = []
-    use_amp = bf16 and device.type == "cuda"
+    use_amp = bf16 and device.type in ("cuda", "mps")
     for i in range(0, len(examples), batch_size):
         chunk = examples[i : i + batch_size]
         batch = _to(collate([dtok.encode(e, mode) for e in chunk], dtok.pad_id, mode), device)
@@ -222,6 +259,10 @@ def train(cfg: TrainConfig) -> dict:
         print("[train] gradient checkpointing enabled")
     if cfg.init_from:
         state = torch.load(Path(cfg.init_from) / "best.pt", map_location="cpu")
+        emb_key = next((k for k in state if k.endswith(("word_embeddings.weight", "embed_tokens.weight", "tok_embeddings.weight"))), None)
+        if emb_key and hasattr(model.backbone, "resize_token_embeddings") \
+                and model.backbone.get_input_embeddings().weight.shape[0] != state[emb_key].shape[0]:
+            model.backbone.resize_token_embeddings(state[emb_key].shape[0])  # size to the checkpoint, as load_checkpoint does
         missing, unexpected = model.load_state_dict(state, strict=False)
         print(f"[train] init_from {cfg.init_from}: missing={len(missing)} unexpected={len(unexpected)}")
     summary = apply_finetune_mode(model, cfg.finetune)
@@ -230,12 +271,28 @@ def train(cfg: TrainConfig) -> dict:
     model.to(device)
     print(f"[train] device={device} readout={cfg.readout} finetune={cfg.finetune} params={summary['total_params']/1e6:.1f}M trainable={summary['trainable_params']/1e6:.1f}M train={len(train_ex)} cal={len(cal_ex)}")
 
-    steps_per_epoch = math.ceil(len(train_ex) / (cfg.batch_size * cfg.grad_accum))
+    mode = model.mode
+    if cfg.max_tokens and mode != "joint":
+        raise ValueError("max_tokens batching is implemented for the joint readout only")
+    enc = [dtok.encode(e, mode) for e in train_ex] if (cfg.cache_encodings or cfg.max_tokens) else None
+    if enc is not None:
+        print(f"[train] cached {len(enc)} encodings")
+    lengths = [len(e.input_ids) for e in enc] if cfg.max_tokens else None
+    if cfg.max_tokens:
+        n_batches = len(_token_batches(list(range(len(train_ex))), lengths, cfg, random.Random(0)))
+        steps_per_epoch = math.ceil(n_batches / cfg.grad_accum)
+        print(f"[train] max_tokens={cfg.max_tokens}: {n_batches} batches/epoch, {len(train_ex)/n_batches:.1f} rows each, "
+              f"longest row {max(lengths)} tokens, mean {sum(lengths)/len(lengths):.0f}")
+    else:
+        steps_per_epoch = math.ceil(len(train_ex) / (cfg.batch_size * cfg.grad_accum))
     total_steps = cfg.max_steps or max(1, int(steps_per_epoch * cfg.epochs))
+    if cfg.compile:
+        model.backbone = torch.compile(model.backbone, dynamic=True)
+        print("[train] torch.compile(backbone, dynamic=True)")
     warmup = max(1, int(total_steps * cfg.warmup_ratio))
-    opt = torch.optim.AdamW(_param_groups(model, cfg), betas=(0.9, 0.98), eps=1e-6)
+    opt = torch.optim.AdamW(_param_groups(model, cfg), betas=(0.9, 0.98), eps=1e-6, fused=device.type == "cuda")
     sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1.0, (s + 1) / warmup) * max(0.0, (total_steps - s) / max(1, total_steps - warmup)))
-    use_amp = cfg.bf16 and device.type == "cuda"
+    use_amp = cfg.bf16 and device.type in ("cuda", "mps")
     rng = random.Random(cfg.seed)
     log_f = (out_dir / "log.jsonl").open("a")
     best_nll, step, t0 = float("inf"), 0, time.time()
@@ -247,7 +304,6 @@ def train(cfg: TrainConfig) -> dict:
             by_src.setdefault(e.source_id, []).append(i)
         groups = list(by_src.values())
         print(f"[train] group_by_state: {len(groups)} source items, {len(train_ex)/len(groups):.1f} examples each")
-    mode = model.mode
     micro = 0
     running: dict[str, float] = {}
     done = False
@@ -257,10 +313,13 @@ def train(cfg: TrainConfig) -> dict:
             order = [i for g in groups for i in g]
         else:
             rng.shuffle(order)
-        for i in range(0, len(order), cfg.batch_size):
-            chunk = [train_ex[j] for j in order[i : i + cfg.batch_size]]
+        batches = (_token_batches(order, lengths, cfg, rng) if cfg.max_tokens
+                   else _batches(order, train_ex, cfg, rng, bucket=groups is None and cfg.bucket_by_length))
+        for idx in batches:
+            chunk = [train_ex[j] for j in idx]
             model.train()
-            batch = _to(collate([dtok.encode(e, mode) for e in chunk], dtok.pad_id, mode), device)
+            batch = _to(collate([enc[j] for j in idx] if enc is not None else [dtok.encode(e, mode) for e in chunk],
+                                dtok.pad_id, mode), device)
             with torch.autocast(device_type=device.type, dtype=torch.bfloat16, enabled=use_amp):
                 out = model(batch)
                 out_perm, perm = None, None
