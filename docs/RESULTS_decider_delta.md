@@ -62,3 +62,7 @@ Qwen3.5-4B + LoRA r64 / alpha 128，lr 1e-4，1 epoch，H100 无梯度检查点�
 | decider-4b v2.1 | 48 / 71 / 73 | 192 | 0.681 | 0.148 | 0.020 |
 
 hard 层按题型（原版 → 本次）：tradeoff 2 → 5，judge_hard 14 → 10（原版 14，decider 9），probability 5 → 3，temporal_numeric 4 → 3，multi_hop 11 → 13；配对修 14 坏 21（对 decider）。代理集大幅上升，但 typed-decisions 训练集（6 千条）在混合里，代理集对本模型是同一生成器的未见题，不是完全分布外；decider 混合是否含该集未知。权重：`tdelab/tde-checkpoints/runs/qwen_big_v1`。
+
+## 发布：tde-qwen3.5-4b-v0.1（2026-09-26）
+
+公开仓库 `tdelab/tde-qwen3.5-4b-v0.1`（权重 + decider_config：choice 0.94 / noul 0.86 / score 1.0）。identity check（PyPI decider-ai[serve] 1.5.0，从 Hub 拉模型，原版 typesafe 适配器，H100）：184/231（48 / 70 / 66），strict-valid 231，p50 15 ms，p95 92 ms，ECE 0.078。榜单预估 50 到 55 分。
