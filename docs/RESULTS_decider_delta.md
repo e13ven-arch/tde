@@ -45,3 +45,10 @@ hard 层按题型（起点 → 本次）：temporal_numeric 5 → 3 /15，tradeo
 231 题 184 对（48 / 71 / 65）。hard 层 73 → 65：temporal_numeric 5 → 1，long_policy 10 → 8，trap 8 → 7，ambiguous 5 → 4；配对修 2 坏 10。
 
 结论：精度假设成立了一半——LoRA 确实学进去了（纯 bf16 全参那次几乎没动），但学进去的是坏东西。我们的规则生成数据在这个 4B 上不是"不迁移"，是**反向迁移**：synth_temporal 训得越好，基准的 temporal_numeric 掉得越多。模板题教会模型一种狭窄的题面形式，自然语言的同类题反而答错。这与编码器上的结论（不迁移）一致，在更强的模型上表现为损害。下一次混合里规则世界要么去掉，要么只留极小比例。
+
+## Qwen3.5-4B 原版 + LoRA（同一 8.4 万条混合，lr 5e-5）
+
+231 题 180 对（48 / 71 / 61）。对比冻结原版 183（48 / 64 / 71）：standard 层 +7（rubric / 格式对齐起作用），hard 层 −10（temporal_numeric 5 → 0，long_policy 10 → 7，multi_hop 15 → 12），配对修 6 坏 18。与 decider + LoRA 的结论一致：规则世界的数据在 4B 上有害，带描述候选的 rubric 数据对 standard 层有益。
+
+## 大混合（qwen_big_v1）配方
+Qwen3.5-4B + LoRA r64 / alpha 128，lr 1e-4，1 epoch，H100 无梯度检查点。数据 51.8 万条：decider 公开混合（delta 模式，`decider.data.mixture`，174 个任务）随机抽 50 万 + LegalBench 8 千 + typed-decisions 训练集 6 千 + synth_rubric 4 千；规则世界（policy / multihop / temporal）全部不用。
