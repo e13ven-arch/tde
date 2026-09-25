@@ -1,2 +1,2 @@
-# Exp 020: large / set / v0.7 (candidate v0.2). config|readout|out_dir|extra
-configs/exp020_large_set_v07.yaml|joint|runs/exp020_large_set_v07|--batch_size 8 --grad_accum 4
+# Exp 020: large / set / v0.7 (candidate v0.2), token-budget batching. config|readout|out_dir|extra
+configs/exp020_large_set_v07.yaml|joint|runs/exp020_large_set_v07|--batch_size 64 --grad_accum 1 --max_tokens 20000
