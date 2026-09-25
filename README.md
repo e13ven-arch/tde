@@ -12,9 +12,9 @@ A research codebase for **non-autoregressive, calibrated decision models**: give
 
 ![tde-general-v0.2 playing Snake](integrations/snake/demo.gif)
 
-[`tde-general-v0.2`](https://huggingface.co/tdelab/tde-general-v0.2) reads the board as text and scores up / down / left / right. With an anti-trap shield it survives all 600 moves of the laya-mlx protocol at 38.75 food per game (laya-mlx: 20.75), about 12 ms per move with MLX on a Mac. Run `python -m integrations.snake.demo` and open http://localhost:8765. Tutorial (中文), from data to a live page on one Mac: [integrations/snake](integrations/snake/README.md).
+[`tde-general-v0.2`](https://huggingface.co/tdelab/tde-general-v0.2) reads the board as text and scores up / down / left / right. With an anti-trap shield it survives all 600 moves of the evaluation protocol at 38.75 food per game, about 12 ms per move with MLX on a Mac. Run `python -m integrations.snake.demo` and open http://localhost:8765. Tutorial (中文), from data to a live page on one Mac: [integrations/snake](integrations/snake/README.md).
 
-This is a **matched-parameter study**, not a new architecture: encoder + candidate scorer designs already exist (GLiClass, TARS, openJev-verdict-2.0, Laya). What this repo adds is a controlled comparison of readout designs, encoder vs decoder at matched size and data, calibration objectives measured against human label distributions, and OOD / few-shot curves with pre-registered endpoints. See [docs/PLAN_v0.1.md](docs/PLAN_v0.1.md).
+This is a **matched-parameter study**, not a new architecture: encoder + candidate scorer designs already exist (GLiClass, TARS, openJev-verdict-2.0). What this repo adds is a controlled comparison of readout designs, encoder vs decoder at matched size and data, calibration objectives measured against human label distributions, and OOD / few-shot curves with pre-registered endpoints. See [docs/PLAN_v0.1.md](docs/PLAN_v0.1.md).
 
 ## Layout
 
