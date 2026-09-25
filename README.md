@@ -58,6 +58,21 @@ python scripts/evaluate.py --run runs/exp001_joint_full --split test
 python scripts/run_baseline.py --baseline nli --limit 2000    # Track-B zero-shot baseline
 ```
 
+### Serve the TypeSafe-compatible wire format
+
+```bash
+pip install "git+https://github.com/e13ven-arch/tde@v0.1.1"
+tde-serve --model tdelab/tde-general-v0.1 --port 8000        # any run / release dir or Hub id; --device cuda|mps|cpu
+curl -s -X POST localhost:8000/v1/systemone -H 'Content-Type: application/json' \
+  -d '{"state": "...", "questions": {"decision": {"type": "choice", "instructions": "...", "criteria": {"a": "", "b": ""}}}}'
+```
+
+`POST /v1/systemone` takes `{state, questions: {id: {type: noul|choice|score, instructions, criteria}}}` and returns
+`{answers: {id: {type, noul | choice, probabilities, confidence}}}`: the model's own softmax over the supplied options,
+no temperature, no renormalisation, one forward pass per question, no network calls. JevBench's unchanged `typesafe`
+adapter measures it as is (`--adapter typesafe --endpoint http://127.0.0.1:8000 --key-env ''`); on the 231 public
+items it reproduces the in-process adapter's totals (130/231 with tde-general-v0.1).
+
 Data inventory and licenses: [docs/DATA.md](docs/DATA.md).
 
 ## Rules this repo follows
