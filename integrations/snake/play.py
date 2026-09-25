@@ -1,11 +1,11 @@
 """Greedy Snake play and the evaluation protocols, for MLX joint models and the BFS teacher.
 
-    python -m integrations.snake.play release/tde-general-v0.2 runs/snake_rlcd_v4/12x12 bfs mc --laya
+    python -m integrations.snake.play release/tde-general-v0.2 runs/snake_rlcd_v4/12x12 bfs mc --standard
 
 A policy maps a list of games to move probabilities [n, 4]; play is greedy (top-1). Besides run directories, 'bfs' is
 the BFS teacher and 'mc' the flat Monte Carlo player that makes the RLCD targets (16 random playouts per move). With
 the shield, a move that loses at once gives way to the most probable move that does not; the trap shield also vetoes
-moves that cut the head off from its tail. Each veto is counted. The Laya protocol is laya-mlx's demo: 24x16 board,
+moves that cut the head off from its tail. Each veto is counted. The standard protocol is: 24x16 board,
 initial length 6, seeds 101-104, 600 moves.
 """
 from __future__ import annotations
@@ -21,7 +21,7 @@ import numpy as np
 
 from integrations.snake.game import DELTA, DIRS, SnakeGame
 
-LAYA = (24, 16, 6, [101, 102, 103, 104], 600)
+STANDARD = (24, 16, 6, [101, 102, 103, 104], 600)
 
 
 def on_gpu(fn, tries: int = 5):
@@ -111,7 +111,7 @@ def main():
     ap.add_argument("policies", nargs="+", help="run dirs with model.safetensors, 'bfs' or 'mc'")
     ap.add_argument("--boards", default="8x8x3:500,12x12x3:800,24x16x6:600", help="WxHxLength:moves,...")
     ap.add_argument("--seeds", default="2000-2031")
-    ap.add_argument("--laya", action="store_true", help="also the laya-mlx protocol")
+    ap.add_argument("--standard", action="store_true", help="also the standard 24x16 protocol (600 moves, seeds 101-104)")
     ap.add_argument("--init", default="release/tde-general-v0.1", help="tokenizer source")
     ap.add_argument("--out", default=None, help="append results as JSON lines")
     args = ap.parse_args()
@@ -130,8 +130,8 @@ def main():
         board, moves = part.split(":")
         w, h, length = map(int, board.split("x"))
         protocols.append(("heldout", w, h, length, seed_range(args.seeds), int(moves)))
-    if args.laya:
-        protocols.append(("laya", *LAYA))
+    if args.standard:
+        protocols.append(("standard", *STANDARD))
     out = open(args.out, "a") if args.out else None
     rng = random.Random(0)
     for name in args.policies:

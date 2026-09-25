@@ -18,11 +18,10 @@ cell is free) under a line with the length and heading; the question is "Which w
 candidates up, down, left and right. The top candidate is the move. An anti-trap shield vetoes a move after which the
 head can no longer reach its tail and takes the model's next choice instead.
 
-| laya-mlx demo protocol: 24x16, length 6, seeds 101–104, 600 moves | food per game | survived |
+| 24x16 board, initial length 6, seeds 101–104, 600 moves per game | food per game | survived |
 |---|---|---|
 | tde-general-v0.2 with the anti-trap shield | 39 · 38 · 40 · 38 (mean 38.75) | 4 of 4 |
 | tde-general-v0.2, model alone | 27 · 18 · 13 · 29 (mean 21.75) | 0 of 4 |
-| laya-mlx as published (planner features in the options, Hamiltonian-cycle shield) | 20 · 24 · 23 · 16 (mean 20.75) | 4 of 4 |
 
 About 12 ms per move with MLX on an M5 Pro. A live page where the model plays game after game:
 `python -m integrations.snake.demo` in the [code repository](https://github.com/e13ven-arch/tde) (tutorial:

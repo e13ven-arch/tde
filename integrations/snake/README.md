@@ -4,12 +4,11 @@
 
 TDE 是一个 1.5 亿参数的决策模型：给它一段局面描述、一个问题和几个候选项，一次前向就给出每个候选项的概率，不生成文字。这个教程把通用模型 `tde-general-v0.1` 微调成会玩贪吃蛇的 [`tde-general-v0.2`](https://huggingface.co/tdelab/tde-general-v0.2)，全程只用一台 Apple Silicon Mac。
 
-在 laya-mlx 同款测试上（24×16 棋盘、初始长度 6、种子 101–104、每局 600 步）：
+评测设定：24×16 棋盘、初始长度 6、种子 101–104、每局 600 步：
 
 | | 每局吃到的食物 | 活满 600 步 |
 |---|---|---|
 | tde-general-v0.2 + 防困死 | 39 / 38 / 40 / 38，平均 38.75 | 4 局全部 |
-| laya-mlx 官方数字 | 20 / 24 / 23 / 16，平均 20.75 | 4 局全部 |
 
 每步约 12 ms（M5 Pro，MLX）。通用能力基本保留：在 7 个公开数据集上准确率 86.4%，v0.1 是 87.4%。
 
@@ -55,8 +54,8 @@ python -m integrations.snake.build_sft --out data/snake/bfs_v1
 python -m tde.mlx.train --data_dir data/snake/bfs_v1 --init release/tde-general-v0.1 \
     --out_dir runs/my-snake --max_state_tokens 480 --epochs 2
 
-# 评测：留出种子 + laya-mlx 协议，分别看不加保护、一步保护和防困死
-python -m integrations.snake.play runs/my-snake --laya
+# 评测：留出种子 + 24×16 标准协议，分别看不加保护、一步保护和防困死
+python -m integrations.snake.play runs/my-snake --standard
 
 # 用自己的模型开演示
 python -m integrations.snake.demo --model runs/my-snake

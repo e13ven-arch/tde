@@ -4,7 +4,7 @@
     PYTHONPATH=. python -m integrations.snake.demo    # then open http://localhost:8765
 
 Each move is the model's top choice over the board text, with the anti-trap shield of integrations.snake.play (a move
-that would cut the head off from its tail gives way to the model's next choice). Games run on the laya-mlx board
+that would cut the head off from its tail gives way to the model's next choice). Games run on the standard 24x16 board
 (24x16, initial length 6, 600 moves) from seed 101 up; the page is demo.html, fed by server-sent events.
 """
 from __future__ import annotations
