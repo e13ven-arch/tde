@@ -30,3 +30,12 @@ hard 层按题型（起点 → 本次）：temporal_numeric 5 → 3 /15，tradeo
 ## 冻结的 Qwen3.5-4B 基线（decider 引擎，chat 布局，T = 1.0，无训练）
 
 231 题 183 对（48 / 64 / 71）。hard 层与 decider v2.1 的差别：judge_hard 14 对 9，multi_hop 11 对 15，probability 5 对 8；配对修 13 坏 15。一个没训过的 4B 在公开 hard 上就有 64%，decider 全部训练在公开题上的净收益约 +9 题，主要在 multi_hop 与 probability。
+
+## 密封题代理：typed-decisions 测试集 2,000 题（wire 格式，T = 1，`ops/wire_eval.py`）
+
+| 模型 | acc | Brier | ECE | choice | noul | score |
+|---|---|---|---|---|---|---|
+| decider-4b v2.1 | 0.681 | 0.148 | 0.020 | 0.680 | 0.742 | 0.636 |
+| Qwen3.5-4B 原版（chat 布局） | 0.583 | 0.272 | 0.183 | 0.622 | 0.632 | 0.516 |
+
+公开 231 题两者只差 9 题，代理集差 10 个点、Brier 差近一倍，和榜单密封分的差距（34.7 对 25.6）方向一致。以后用这个集合判断"密封题会不会涨"，公开题只用来确认没训坏。
