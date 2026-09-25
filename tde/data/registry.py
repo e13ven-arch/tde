@@ -77,6 +77,11 @@ REGISTRY: dict[str, DatasetSpec] = {
         usage="train", adapter="synth", stage=1, max_rows=20000,
         notes="Rule-generated JSON worlds (users / departments / tickets) with 2-3 hop questions.",
     ),
+    "synth_rubric": DatasetSpec(
+        name="synth_rubric", hf_id="", hf_config=None, license="generated in this repo (Apache-2.0)",
+        usage="train", adapter="synth", stage=1, max_rows=20000,
+        notes="Described candidates + judging rule in the instruction (adequacy / intent / ordinal / routing / policy), programmatic labels (tde/data/synth_rubric.py). v0.7.",
+    ),
     "synth_temporal": DatasetSpec(
         name="synth_temporal", hf_id="", hf_config=None, license="generated in this repo (Apache-2.0)",
         usage="train", adapter="synth", stage=1, max_rows=20000,

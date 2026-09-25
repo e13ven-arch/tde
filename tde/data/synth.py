@@ -366,7 +366,12 @@ def gen_temporal(rng: random.Random, idx: int) -> World:
     return World("temporal", f"temporal:{idx}", state, qs)
 
 
-GENERATORS = {"policy": gen_policy, "multihop": gen_multihop, "temporal": gen_temporal}
+def _gen_rubric(rng, idx):
+    from tde.data.synth_rubric import gen_rubric
+    return gen_rubric(rng, idx)
+
+
+GENERATORS = {"policy": gen_policy, "multihop": gen_multihop, "temporal": gen_temporal, "rubric": _gen_rubric}
 
 
 def worlds_to_examples(family: str, n: int, seed: int = 0, questions_per_world: int | None = None) -> list[DecisionExample]:
