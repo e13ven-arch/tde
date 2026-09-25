@@ -26,3 +26,7 @@ hard 层按题型（起点 → 本次）：temporal_numeric 5 → 3 /15，tradeo
 | avg(v1, v2, v2.1) | 48 | 71 | 73 | 192 | 修 3 坏 3 |
 
 同血统三个版本的权重平均对公开题没有可测变化，不采用。
+
+## 冻结的 Qwen3.5-4B 基线（decider 引擎，chat 布局，T = 1.0，无训练）
+
+231 题 183 对（48 / 64 / 71）。hard 层与 decider v2.1 的差别：judge_hard 14 对 9，multi_hop 11 对 15，probability 5 对 8；配对修 13 坏 15。一个没训过的 4B 在公开 hard 上就有 64%，decider 全部训练在公开题上的净收益约 +9 题，主要在 multi_hop 与 probability。

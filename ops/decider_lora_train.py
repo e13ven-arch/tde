@@ -81,6 +81,12 @@ def main():
     src = a.model if os.path.isdir(a.model) else snapshot_download(a.model, allow_patterns=["decider_config.json", "chat_template.jinja"])
     for f in ("decider_config.json", "chat_template.jinja"):
         if os.path.exists(f"{src}/{f}"): shutil.copy(f"{src}/{f}", f"{a.out}/model/{f}")
+    cfg_path = f"{a.out}/model/decider_config.json"
+    if not os.path.exists(cfg_path):   # base was a stock model: write the runtime config decider's server expects
+        json.dump({"temperature": 1.0, "neutralize_none": False, "version": os.path.basename(a.out), "base": a.model, "layout": "plain",
+                   "max_options": a.max_options, "max_state_tokens": 32768, "schema_first": False, "schema_first_trained": a.schema_first_prob > 0,
+                   "isolated_levels": True, "stage": f"LoRA r{a.r} alpha {a.alpha} lr {a.lr} {a.epochs} epoch on {os.path.basename(a.data)}, merged"},
+                  open(cfg_path, "w"), indent=1)
     log("[done] saved", f"{a.out}/model")
 
 
