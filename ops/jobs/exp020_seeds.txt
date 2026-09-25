@@ -1,0 +1,3 @@
+# Exp 020 seed replication (seeds 1, 2), same fast layout. config|readout|out_dir|extra
+configs/exp020_large_set_v07.yaml|joint|runs/exp020_large_set_v07_s1|--batch_size 64 --grad_accum 1 --max_tokens 20000 --seed 1
+configs/exp020_large_set_v07.yaml|joint|runs/exp020_large_set_v07_s2|--batch_size 64 --grad_accum 1 --max_tokens 20000 --seed 2
