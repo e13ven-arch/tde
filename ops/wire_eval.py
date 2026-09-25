@@ -46,7 +46,7 @@ def main():
         p = [probs.get(n, 0.0) for n in names]; pred = max(range(len(p)), key=lambda i: p[i]); ok = int(pred == gold)
         stats[r["primitive"]][0] += ok; stats[r["primitive"]][1] += 1
         brier.append(sum((p[i] - r["target"][i]) ** 2 for i in range(len(p)))); conf.append(max(p)); cor.append(ok)
-        recs.append({"id": r["id"], "primitive": r["primitive"], "correct": ok, "probs": probs})
+        recs.append({"id": r["id"], "primitive": r["primitive"], "correct": ok, "probs": probs, "names": names, "target": r["target"]})
     n = len(cor); acc = sum(cor) / n
     bins = [[] for _ in range(10)]
     for c, y in zip(conf, cor): bins[min(9, int(c * 10))].append((c, y))
