@@ -66,3 +66,5 @@ hard 层按题型（原版 → 本次）：tradeoff 2 → 5，judge_hard 14 → 
 ## 发布：tde-qwen3.5-4b-v0.1（2026-09-26）
 
 公开仓库 `tdelab/tde-qwen3.5-4b-v0.1`（权重 + decider_config：choice 0.94 / noul 0.86 / score 1.0）。identity check（PyPI decider-ai[serve] 1.5.0，从 Hub 拉模型，原版 typesafe 适配器，H100）：184/231（48 / 70 / 66），strict-valid 231，p50 15 ms，p95 92 ms，ECE 0.078。榜单预估 50 到 55 分。
+
+**提交路径更新（2026-10-10）**：维护者 10 月 7 日起改用 https://benchmarkheaven.com/submit 表单收模型（免费常规队列；付费 48 小时快速通道）。tde-qwen3.5-4b-v0.1 已通过表单提交：参考号 7798589F，常规队列第 61 位。#88 / #92 / #99 的 issue 保留不动。
