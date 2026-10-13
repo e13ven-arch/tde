@@ -2,12 +2,39 @@
 
 ## 1. 各模型的基座与训练方式
 
-| 模型 | 基座 | 参数 | 读出 | 训练方式 | 训练数据 | 发布 |
-|---|---|---|---|---|---|---|
-| tde-general-v0.1 | ModernBERT-base，GLiClass-base 编码器初始化 | 150M | [MASK] 标记 + span 池化，pointer 打分，顺序候选拓扑 | 全参微调，1 epoch，soft-CE + RPS 1.0 + 换序 KL 0.3，1,024 token state | v0.5：7 个公开分类集 + 规则世界 ×3 + LegalBench + HotpotQA + typed-decisions 训练集，每集 ≤15k，18.6 万条 | HF `tdelab/tde-general-v0.1` |
-| tde-typed-specialist-v0.1 | 上一行的 checkpoint | 150M | 同上 | 专家阶段：typed-decisions 训练集 5,400 条，8 epoch，lr 减半，按校准集 NLL 选点 | 同上 + 专家阶段 | 本地（未上传） |
-| tde-general-large-v0.1 | ModernBERT-large，GLiClass-large 编码器初始化 | 395M | 同上，set 候选拓扑（位置绑定 + 集合掩码，无换序 KL） | 全参微调，1 epoch，token 预算组批 | v0.7：v0.6（去 HotpotQA，规则世界各 20k）+ synth_rubric 20k，每集 ≤15k | HF `tdelab/tde-general-large-v0.1` |
-| tde-qwen3.5-4b-v0.1 | Qwen3.5-4B（指令版，revision 851bf6e） | 4B | 选项字母 logit，一次前向，decider-ai 引擎 | LoRA r64 / α128，全部线性层，lr 1e-4，1 epoch，合并进 bf16；按题型温度（choice 0.94 / noul 0.86 / score 1.0） | decider 公开混合随机 50 万（95 个公开集 + 其教师题 + rules 生成器）+ LegalBench 8k + typed-decisions 训练集 6k + rubric 4k，共 51.8 万 | HF `tdelab/tde-qwen3.5-4b-v0.1` |
+四个模型都是**监督微调**：输入是 (state, 问题, 候选集)，监督信号是候选上的目标分布 y，没有强化学习，没有从 Jev 蒸馏。差别在基座、哪些参数在训、目标函数和标签来源。
+
+### tde-general-v0.1（150M）
+- 基座：ModernBERT-base 架构，权重取自 GLiClass-base 的编码器（词表 50,370）。
+- 可训练参数：全部（编码器 149.6M + pointer 头 <1M），全参微调。
+- 结构：序列 `[CLS] state [SEP] 问题 [SEP] [MASK] 候选1 [MASK] 候选2 … [MASK]`，每个候选从它前面的 [MASK] 隐状态（加候选 span 均值）读出，与末尾 [MASK] 做点积得到 K 个 logit，softmax 成分布。
+- 目标函数：soft 交叉熵 + 1.0 × RPS（有序题）+ 0.3 × 换序 KL（同题打乱候选再前向一次，约束两次分布一致）。
+- 标签来源：公开数据集的金标签改写成 one-hot（有人工投票的用投票分布）；规则世界由程序算出；typed-decisions 用其教师软标签。
+- 超参：1 epoch，micro-batch 2 × 累积 16，lr 骨干 2e-5 / 头 1e-4，layer decay 0.9，bf16 autocast，梯度检查点，state 上限 1,024 token，每数据集 ≤15,000 条，共 18.6 万条。
+- 算力：RTX 4060 8GB，约 2.7 小时。
+
+### tde-typed-specialist-v0.1（150M）
+- 起点：上面的 checkpoint。
+- 训练：只用 typed-decisions 训练集 5,400 条，8 epoch，lr 减半（5e-6 / 2e-5），按校准集 NLL 在第 1,350 步选点；其余同上。3 个 seed 准确率完全一致。
+
+### tde-general-large-v0.1（395M）
+- 基座：ModernBERT-large 架构，权重取自 GLiClass-large 的编码器。
+- 可训练参数：全部，全参微调。
+- 结构：同 150M，但候选用 **set 拓扑**：每个候选块位置编号从同一位置起算，注意力掩码让候选只看前缀和自己，候选标记之间互看；输出对候选置换严格等变，换序 KL 恒为零，不再使用。
+- 目标函数：soft 交叉熵 + 1.0 × RPS。
+- 标签来源：同 150M，另加 synth_rubric（带描述候选 + 指令规则，程序标签）。
+- 超参：1 epoch，token 预算组批（每批 ≤64 行且行数 × 最长行 ≤ 20,000 token），不开梯度检查点，lr 同上，state 上限 1,024，共 18.9 万条。
+- 算力：RTX 6000 Ada 48GB，19 分钟。
+
+### tde-qwen3.5-4b-v0.1（4B）
+- 基座：Qwen/Qwen3.5-4B 指令版（revision 851bf6e），bf16，冻结。
+- 可训练参数：LoRA，r = 64，α = 128，挂在每一个线性层（注意力和 MLP），fp32 适配器，1.3 亿参数；训完合并进 bf16 权重。
+- 结构：decider 的读出：把 state、问题、选项渲染成一段文本，选项标 (A)(B)(C)…，在答案位取各字母 token 的 logit 做 softmax；score 型每档单独问一次 yes/no 再归一化。零生成。
+- 目标函数：交叉熵（one-hot 或程序标签），decider 训练器的损失，无 RPS、无换序项。
+- 标签来源：decider 公开混合（95 个公开集金标签、其 27B 教师写的题并经双答一致过滤、rules 生成器程序标签）+ LegalBench 金标签 + typed-decisions 教师软标签取 argmax + rubric 程序标签。
+- 超参：1 epoch，lr 1e-4，warmup 50，cosine 衰减，micro-batch 8,192 token × 累积 4，长批（>3,072 token）开梯度检查点，共 51.8 万条、1.82 亿 token。
+- 温度：训完在自有校准集（1,504 行）按题型用 NLL 拟合：choice 0.94、noul 0.86、score 1.0（样本不足保持 1）。
+- 算力：H100 80GB，5.6 小时。
 
 ## 2. 同一评测设置下的基线与结果
 
